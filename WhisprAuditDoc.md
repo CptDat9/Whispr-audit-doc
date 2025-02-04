@@ -50,37 +50,50 @@
 
 ## Thiết kế hệ thống
 ### Các thuộc tính quan trọng
-#### WhisprECDSA
+## WhisprECDSA
 
 | Thuộc tính            | Ý nghĩa |
 |-----------------------|---------|
 | `_nonce`             | Mapping lưu trữ nonce của từng địa chỉ |
-| `APPROVE_ACTION`     | Giá trị hash của chuỗi `"APPROVE"` |
-| `TRANSFER_ACTION`    | Giá trị hash của chuỗi `"TRANSFER"` |
-| `_getNonce`          | Hàm lấy giá trị nonce của một địa chỉ |
-| `_verifyApprove`     | Hàm xác minh chữ ký cho hành động `approve` |
-| `_verifyTransfer`    | Hàm xác minh chữ ký cho hành động `transfer` |
-| `verifyEthMessage`   | Hàm xác minh chữ ký ECDSA trên chuỗi Ethereum |
-| `_incrementNonce`    | Hàm tăng giá trị nonce của một địa chỉ |
+| `APPROVE_ACTION`     | Hash của chuỗi `"APPROVE"` dùng để xác thực hành động approve |
+| `TRANSFER_ACTION`    | Hash của chuỗi `"TRANSFER"` dùng để xác thực hành động transfer |
 
-#### WhisprEIP712
+## WhisprEIP712
 
-| Thuộc tính            | Ý nghĩa |
-|-----------------------|---------|
-| `EIP712_DOMAIN_TYPEHASH` | Giá trị hash của cấu trúc `EIP712Domain` |
-| `BALANCEOF_CODE`     | Giá trị hash của chuỗi `"Whispr.balanceOf"` |
-| `APPROVE_CODE`       | Giá trị hash của chuỗi `"Whispr.approve"` |
-| `TRANSFER_CODE`      | Giá trị hash của chuỗi `"Whispr.transfer"` |
-| `DOMAIN_BALANCEOF`   | Giá trị hash của miền `balanceOf` |
-| `DOMAIN_APPROVE`     | Giá trị hash của miền `approve` |
-| `DOMAIN_TRANSFER`    | Giá trị hash của miền `transfer` |
-| `_nonce_eip712`      | Mapping lưu trữ nonce của từng địa chỉ cho EIP-712 |
-| `authenticatedBalance` | Modifier xác minh chữ ký EIP-712 cho `balanceOf` |
-| `authenticatedApprove` | Modifier xác minh chữ ký EIP-712 cho `approve` |
-| `authenticatedTransfer` | Modifier xác minh chữ ký EIP-712 cho `transfer` |
-| `_getNonceEIP712`    | Hàm lấy giá trị nonce EIP-712 của một địa chỉ |
-| `_incrementNonceEIP712` | Hàm tăng giá trị nonce EIP-712 của một địa chỉ |
+| Thuộc tính           | Ý nghĩa |
+|----------------------|---------|
+| `EIP712_DOMAIN_TYPEHASH` | Hash của domain EIP-712 |
+| `BALANCEOF_CODE`    | Hash của chuỗi `"Whispr.balanceOf"` |
+| `APPROVE_CODE`      | Hash của chuỗi `"Whispr.approve"` |
+| `TRANSFER_CODE`     | Hash của chuỗi `"Whispr.transfer"` |
+| `DOMAIN_BALANCEOF`  | Hash của domain balanceOf |
+| `DOMAIN_APPROVE`    | Hash của domain approve |
+| `DOMAIN_TRANSFER`   | Hash của domain transfer |
+| `_nonce_eip712`     | Mapping lưu trữ nonce của từng địa chỉ trong EIP-712 |
 
+## Structs trong WhisprEIP712
+
+| Struct           | Thuộc tính         | Ý nghĩa |
+|-----------------|------------------|---------|
+| `SignatureRSV`  | `r`, `s`, `v`    | Các giá trị chữ ký ECDSA |
+| `ApproveData`   | `owner`           | Địa chỉ chủ sở hữu |
+|                 | `spender`         | Địa chỉ được cấp quyền |
+|                 | `amount`          | Số lượng token được approve |
+|                 | `nonce`           | Nonce để ngăn chặn replay attack |
+|                 | `validAfter`      | Thời điểm chữ ký bắt đầu có hiệu lực |
+|                 | `validUntil`      | Thời điểm chữ ký hết hiệu lực |
+|                 | `rsv`             | Chữ ký của người ký |
+| `BalanceOfData` | `owner`           | Địa chỉ chủ sở hữu cần kiểm tra balance |
+|                 | `validAfter`      | Thời điểm chữ ký bắt đầu có hiệu lực |
+|                 | `validUntil`      | Thời điểm chữ ký hết hiệu lực |
+|                 | `rsv`             | Chữ ký của người ký |
+| `TransferData`  | `from`            | Địa chỉ gửi token |
+|                 | `to`              | Địa chỉ nhận token |
+|                 | `amount`          | Số lượng token được chuyển |
+|                 | `nonce`           | Nonce để ngăn chặn replay attack |
+|                 | `validAfter`      | Thời điểm chữ ký bắt đầu có hiệu lực |
+|                 | `validUntil`      | Thời điểm chữ ký hết hiệu lực |
+|                 | `rsv`             | Chữ ký của người ký |
 
 ## Cài đặt mã nguồn
 ## Các vấn đề chưa giải quyết
