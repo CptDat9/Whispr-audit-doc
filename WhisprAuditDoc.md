@@ -132,8 +132,8 @@
 |------------|---------|
 | `whisprUSD` | Địa chỉ của token WhisprUSD, được mint khi nhận ThornUSD. |
 | `thornUSD`  | Địa chỉ của token ThornUSD, được cung cấp vào pool để đổi lấy WhisprUSD. |
-### Các usecase quan trọng
-#### WhisprECDSA
+## Các usecase quan trọng
+### WhisprECDSA
 
 #### _getNonce
 **Input:**
@@ -209,6 +209,71 @@
 
 **Các công việc thực hiện:**
 - Tăng giá trị nonce của `owner` lên 1.
+### WhisprEIP712
+
+#### _getNonceEIP712
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| owner | Địa chỉ của người dùng cần lấy nonce |
+
+**Các công việc thực hiện:**
+- Trả về giá trị nonce hiện tại của địa chỉ `owner`.
+
+
+
+#### _incrementNonceEIP712
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| owner | Địa chỉ của người cần tăng nonce |
+
+**Các công việc thực hiện:**
+- Tăng giá trị nonce của `owner` lên 1.
+
+
+
+#### authenticatedBalance
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| auth | Dữ liệu xác thực `BalanceOfData` |
+
+**Các công việc thực hiện:**
+- Kiểm tra thời gian hợp lệ của chữ ký.
+- Tạo `authdataDigest` để kiểm tra tính hợp lệ của chữ ký.
+- Sử dụng `ecrecover` để trích xuất địa chỉ ký từ chữ ký số.
+- Kiểm tra xem địa chỉ được trích xuất có khớp với `auth.owner` không.
+
+
+
+#### authenticatedApprove
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| auth | Dữ liệu xác thực `ApproveData` |
+
+**Các công việc thực hiện:**
+- Kiểm tra thời gian hợp lệ của chữ ký.
+- Kiểm tra nonce để đảm bảo không có giao dịch trùng lặp.
+- Tạo `authdataDigest` để kiểm tra tính hợp lệ của chữ ký.
+- Sử dụng `ecrecover` để trích xuất địa chỉ ký từ chữ ký số.
+- Kiểm tra xem địa chỉ được trích xuất có khớp với `auth.owner` không.
+
+
+
+#### authenticatedTransfer
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| auth | Dữ liệu xác thực `TransferData` |
+
+**Các công việc thực hiện:**
+- Kiểm tra thời gian hợp lệ của chữ ký.
+- Kiểm tra nonce để đảm bảo không có giao dịch trùng lặp.
+- Tạo `authdataDigest` để kiểm tra tính hợp lệ của chữ ký.
+- Sử dụng `ecrecover` để trích xuất địa chỉ ký từ chữ ký số.
+- Kiểm tra xem địa chỉ được trích xuất có khớp với `auth.from` không.
 
 ## Cài đặt mã nguồn
 ## Các vấn đề chưa giải quyết
