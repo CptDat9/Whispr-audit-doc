@@ -1108,7 +1108,7 @@ constructor() {
 
 - `revoke`
 
-  ```soldity
+  ```solidity
   function revoke(address from, PrivacyPolicy accessType) public {
         uint256 accessIndex = uint256(accessType);
 
