@@ -319,7 +319,7 @@
 - Kiểm tra quyền truy cập thông qua `WhisprPrivacyPolicy`.
 - Nếu được phép, trả về số dư của `account`, ngược lại trả về `0`.
 
----
+
 
 #### allowance
 **Input:**
@@ -333,7 +333,7 @@
 - Nếu `spender` là người gọi và đã được cấp quyền, trả về số lượng token được phép sử dụng.
 - Ngược lại, trả về số lượng token `owner` đã cấp phép cho `spender`.
 
----
+
 
 #### approve
 **Input:**
@@ -345,7 +345,7 @@
 **Các công việc thực hiện:**
 - Gọi `_approve(owner, spender, amount)` để cấp quyền sử dụng token cho `spender`.
 
----
+
 
 #### transfer
 **Input:**
@@ -357,7 +357,7 @@
 **Các công việc thực hiện:**
 - Gọi `_transfer(owner, to, amount)` để thực hiện giao dịch.
 
----
+
 
 #### transferFrom
 **Input:**
@@ -371,7 +371,6 @@
 - Gọi `_spendAllowance(from, spender, amount)` để kiểm tra và trừ lượng token được cấp phép.
 - Gọi `_transfer(from, to, amount)` để thực hiện giao dịch.
 
----
 
 #### approveUseSignature
 **Input:**
@@ -388,7 +387,6 @@
 - Tăng nonce của `owner` để tránh replay attack.
 - Cấp quyền sử dụng token cho `spender`.
 
----
 
 #### transferUseSignature
 **Input:**
@@ -405,7 +403,6 @@
 - Tăng nonce của `from` để tránh replay attack.
 - Thực hiện chuyển token từ `from` đến `to`.
 
----
 
 #### balanceOfByEIP712
 **Input:**
@@ -418,7 +415,6 @@
 - Xác thực địa chỉ `auth.owner` thông qua chữ ký số.
 - Trả về số dư của `auth.owner` nếu xác thực thành công.
 
----
 
 #### approveByEIP712
 **Input:**
@@ -433,7 +429,6 @@
 - Tăng nonce của `auth.owner`.
 - Cấp quyền sử dụng token cho `auth.spender`.
 
----
 
 #### transferByEIP712
 **Input:**
@@ -462,8 +457,6 @@
 - Nếu chưa cấp quyền, cập nhật `grantedAccess[msg.sender][to]` bằng cách sử dụng `Bitmask.set(accessIndex)`.
 - Nếu quyền đã được cấp, báo lỗi `"Access already granted"`.
 
----
-
 #### revoke
 **Input:**
 | Parameter | Meaning |
@@ -476,7 +469,6 @@
 - Nếu có quyền, xóa quyền truy cập bằng `Bitmask.unset(accessIndex)`.
 - Nếu chưa có quyền, báo lỗi `"No access granted yet"`.
 
----
 
 #### hasAccess
 **Input:**
