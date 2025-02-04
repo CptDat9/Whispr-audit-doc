@@ -11,7 +11,7 @@
 - Hỗ trợ các chức năng quản lý quyền riêng tư và uỷ quyền giao dịch.
 ## Giải pháp
 
-### 🔧 Xây dựng các contract sau:
+###  Xây dựng các contract sau:
 
 #### **WhisprERC20**
 - Contract token ẩn danh theo tiêu chuẩn ERC-20 với các tính năng tùy chỉnh phù hợp với tính riêng tư.
@@ -41,13 +41,14 @@
 
 ---
 
-### ⚙️ **Cơ chế hoạt động**
+###  **Cơ chế hoạt động**
 1. Người dùng **wrap** token ERC-20 thành `WhisprUSD` để giao dịch ẩn danh.
 2. Giao dịch được gửi qua hệ thống mã hóa của **Sapphire**.
 3. Xác thực giao dịch thông qua **EIP-712**.
 4. Người dùng có thể **unwrap** `WhisprUSD` để nhận lại token ERC-20 gốc.
-5. Với **bridge**, token có thể được chuyển đổi và gửi tới các chain khác (hỗ trợ giao dịch cross-chain).
+5. Với **bridge**, token có thể được chuyển đổi và gửi tới các pool khác (hỗ trợ giao dịch cross-chain).
 
 ## Thiết kế hệ thống
+### Các thuộc tính quan trọng
 ## Cài đặt mã nguồn
 ## Các vấn đề chưa giải quyết
