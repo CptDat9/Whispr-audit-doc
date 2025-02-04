@@ -50,7 +50,7 @@
 
 ## Thiết kế hệ thống
 ### Các thuộc tính quan trọng
-## WhisprECDSA
+#### WhisprECDSA
 
 | Thuộc tính            | Ý nghĩa |
 |-----------------------|---------|
@@ -58,7 +58,7 @@
 | `APPROVE_ACTION`     | Hash của chuỗi `"APPROVE"` dùng để xác thực hành động approve |
 | `TRANSFER_ACTION`    | Hash của chuỗi `"TRANSFER"` dùng để xác thực hành động transfer |
 
-## WhisprEIP712
+#### WhisprEIP712
 
 | Thuộc tính           | Ý nghĩa |
 |----------------------|---------|
@@ -71,7 +71,7 @@
 | `DOMAIN_TRANSFER`   | Hash của domain transfer |
 | `_nonce_eip712`     | Mapping lưu trữ nonce của từng địa chỉ trong EIP-712 |
 
-## Struct trong WhisprEIP712
+- Struct trong WhisprEIP712
 
 | Struct           | Thuộc tính         | Ý nghĩa |
 |-----------------|------------------|---------|
@@ -94,6 +94,43 @@
 |                 | `validAfter`      | Thời điểm chữ ký bắt đầu có hiệu lực |
 |                 | `validUntil`      | Thời điểm chữ ký hết hiệu lực |
 |                 | `rsv`             | Chữ ký của người ký |
+#### WhisprERC20
+| Thuộc tính    | Ý nghĩa |
+|--------------|---------|
+| `MINTER_ROLE` | Hash của role "MINTER_ROLE" dùng để cấp quyền mint token |
+| `_balances`   | Mapping lưu số dư token của từng địa chỉ |
+| `_allowances` | Mapping lưu hạn mức chi tiêu token được cấp giữa các địa chỉ |
+| `name`        | Tên của token |
+| `symbol`      | Ký hiệu của token |
+| `decimals`    | Số chữ số thập phân của token |
+| `_globalTotalSupply` | Tổng cung token trong hệ thống |
+#### WhisprPrivacyPolicy
 
+| Thuộc tính      | Ý nghĩa |
+|----------------|---------|
+| `PrivacyPolicy` | Enum định nghĩa các chính sách quyền riêng tư, hiện tại chỉ có một giá trị là `Reveal`, cho phép tiết lộ thông tin khi được cấp quyền. |
+| `grantedAccess` | Mapping lưu trữ quyền truy cập của một địa chỉ đối với một địa chỉ khác, sử dụng bitmask để quản lý các quyền khác nhau. |
+#### WhisprBridge
+
+| Thuộc tính              | Ý nghĩa |
+|------------------------|---------|
+| `VERSION`             | Phiên bản của hợp đồng WhisprBridge. |
+| `whisprUSD`           | Địa chỉ của token WhisprUSD. |
+| `whisprUSDMinter`     | Địa chỉ của hợp đồng Minter dùng để đốt WhisprUSD và tạo ra ThornUSD. |
+| `thornUSD`            | Địa chỉ của token ThornUSD, được tạo ra sau khi đốt WhisprUSD. |
+| `stableSwapRouter`    | Địa chỉ của hợp đồng Router dùng để hoán đổi stablecoin giữa các chuỗi. |
+| `assetForwarder`      | Địa chỉ của hợp đồng quản lý việc chuyển tài sản giữa các chuỗi. |
+| `publicKey`           | Khóa công khai dùng cho mã hóa và bảo mật dữ liệu trên Sapphire. |
+| `privateKey`          | Khóa bí mật dùng để tạo khóa đối xứng cho mã hóa dữ liệu trên Sapphire. |
+| `oracle`             | Địa chỉ của Oracle, có thể được sử dụng để lấy dữ liệu giá hoặc xác thực giao dịch. |
+| `clearingFee`        | Phí thanh toán (clearing fee) được áp dụng khi thực hiện giao dịch. |
+| `refundWalletEntrypoint` | Địa chỉ của hợp đồng tạo ví hoàn tiền khi giao dịch thất bại. |
+
+#### WhisprMinter
+
+| Thuộc tính  | Ý nghĩa |
+|------------|---------|
+| `whisprUSD` | Địa chỉ của token WhisprUSD, được mint khi nhận ThornUSD. |
+| `thornUSD`  | Địa chỉ của token ThornUSD, được cung cấp vào pool để đổi lấy WhisprUSD. |
 ## Cài đặt mã nguồn
 ## Các vấn đề chưa giải quyết
