@@ -50,5 +50,37 @@
 
 ## Thiết kế hệ thống
 ### Các thuộc tính quan trọng
+#### WhisprECDSA
+
+| Thuộc tính            | Ý nghĩa |
+|-----------------------|---------|
+| `_nonce`             | Mapping lưu trữ nonce của từng địa chỉ |
+| `APPROVE_ACTION`     | Giá trị hash của chuỗi `"APPROVE"` |
+| `TRANSFER_ACTION`    | Giá trị hash của chuỗi `"TRANSFER"` |
+| `_getNonce`          | Hàm lấy giá trị nonce của một địa chỉ |
+| `_verifyApprove`     | Hàm xác minh chữ ký cho hành động `approve` |
+| `_verifyTransfer`    | Hàm xác minh chữ ký cho hành động `transfer` |
+| `verifyEthMessage`   | Hàm xác minh chữ ký ECDSA trên chuỗi Ethereum |
+| `_incrementNonce`    | Hàm tăng giá trị nonce của một địa chỉ |
+
+#### WhisprEIP712
+
+| Thuộc tính            | Ý nghĩa |
+|-----------------------|---------|
+| `EIP712_DOMAIN_TYPEHASH` | Giá trị hash của cấu trúc `EIP712Domain` |
+| `BALANCEOF_CODE`     | Giá trị hash của chuỗi `"Whispr.balanceOf"` |
+| `APPROVE_CODE`       | Giá trị hash của chuỗi `"Whispr.approve"` |
+| `TRANSFER_CODE`      | Giá trị hash của chuỗi `"Whispr.transfer"` |
+| `DOMAIN_BALANCEOF`   | Giá trị hash của miền `balanceOf` |
+| `DOMAIN_APPROVE`     | Giá trị hash của miền `approve` |
+| `DOMAIN_TRANSFER`    | Giá trị hash của miền `transfer` |
+| `_nonce_eip712`      | Mapping lưu trữ nonce của từng địa chỉ cho EIP-712 |
+| `authenticatedBalance` | Modifier xác minh chữ ký EIP-712 cho `balanceOf` |
+| `authenticatedApprove` | Modifier xác minh chữ ký EIP-712 cho `approve` |
+| `authenticatedTransfer` | Modifier xác minh chữ ký EIP-712 cho `transfer` |
+| `_getNonceEIP712`    | Hàm lấy giá trị nonce EIP-712 của một địa chỉ |
+| `_incrementNonceEIP712` | Hàm tăng giá trị nonce EIP-712 của một địa chỉ |
+
+
 ## Cài đặt mã nguồn
 ## Các vấn đề chưa giải quyết
