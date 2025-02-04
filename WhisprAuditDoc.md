@@ -132,5 +132,7 @@
 |------------|---------|
 | `whisprUSD` | Địa chỉ của token WhisprUSD, được mint khi nhận ThornUSD. |
 | `thornUSD`  | Địa chỉ của token ThornUSD, được cung cấp vào pool để đổi lấy WhisprUSD. |
+### Các usecase quan trọng
+
 ## Cài đặt mã nguồn
 ## Các vấn đề chưa giải quyết
