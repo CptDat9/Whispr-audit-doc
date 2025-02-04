@@ -275,5 +275,221 @@
 - Sử dụng `ecrecover` để trích xuất địa chỉ ký từ chữ ký số.
 - Kiểm tra xem địa chỉ được trích xuất có khớp với `auth.from` không.
 
+### WhisprERC20
+
+#### mint
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| to | Địa chỉ nhận token được mint |
+| amount | Số lượng token cần mint |
+
+**Các công việc thực hiện:**
+- Kiểm tra xem người gọi có quyền `MINTER_ROLE` hay không.
+- Gọi hàm `_mint(to, amount)` để tạo thêm token cho địa chỉ `to`.
+
+---
+
+#### burn
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| amount | Số lượng token cần burn |
+
+**Các công việc thực hiện:**
+- Gọi hàm `_burn(msg.sender, amount)` để giảm số lượng token của người gọi.
+
+---
+
+#### totalSupply
+**Input:** Không có  
+
+**Các công việc thực hiện:**
+- Trả về tổng số token đang lưu hành (`_globalTotalSupply`).
+
+---
+
+#### balanceOf
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| account | Địa chỉ tài khoản cần kiểm tra số dư |
+
+**Các công việc thực hiện:**
+- Kiểm tra quyền truy cập thông qua `WhisprPrivacyPolicy`.
+- Nếu được phép, trả về số dư của `account`, ngược lại trả về `0`.
+
+---
+
+#### allowance
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| owner | Địa chỉ chủ sở hữu token |
+| spender | Địa chỉ được cấp quyền chi tiêu token |
+
+**Các công việc thực hiện:**
+- Kiểm tra quyền truy cập thông qua `WhisprPrivacyPolicy`.
+- Nếu `spender` là người gọi và đã được cấp quyền, trả về số lượng token được phép sử dụng.
+- Ngược lại, trả về số lượng token `owner` đã cấp phép cho `spender`.
+
+---
+
+#### approve
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| spender | Địa chỉ được cấp quyền sử dụng token |
+| amount | Số lượng token được cấp phép |
+
+**Các công việc thực hiện:**
+- Gọi `_approve(owner, spender, amount)` để cấp quyền sử dụng token cho `spender`.
+
+---
+
+#### transfer
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| to | Địa chỉ nhận token |
+| amount | Số lượng token cần chuyển |
+
+**Các công việc thực hiện:**
+- Gọi `_transfer(owner, to, amount)` để thực hiện giao dịch.
+
+---
+
+#### transferFrom
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| from | Địa chỉ gửi token |
+| to | Địa chỉ nhận token |
+| amount | Số lượng token cần chuyển |
+
+**Các công việc thực hiện:**
+- Gọi `_spendAllowance(from, spender, amount)` để kiểm tra và trừ lượng token được cấp phép.
+- Gọi `_transfer(from, to, amount)` để thực hiện giao dịch.
+
+---
+
+#### approveUseSignature
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| owner | Địa chỉ chủ sở hữu token |
+| spender | Địa chỉ được cấp quyền sử dụng token |
+| amount | Số lượng token được cấp phép |
+| data | Dữ liệu EIP-712 xác thực giao dịch |
+| signature | Chữ ký số xác nhận giao dịch |
+
+**Các công việc thực hiện:**
+- Xác thực chữ ký với `_verifyApprove(owner, spender, amount, data, signature)`.
+- Tăng nonce của `owner` để tránh replay attack.
+- Cấp quyền sử dụng token cho `spender`.
+
+---
+
+#### transferUseSignature
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| from | Địa chỉ gửi token |
+| to | Địa chỉ nhận token |
+| amount | Số lượng token cần chuyển |
+| data | Dữ liệu EIP-712 xác thực giao dịch |
+| signature | Chữ ký số xác nhận giao dịch |
+
+**Các công việc thực hiện:**
+- Xác thực chữ ký với `_verifyTransfer(from, to, amount, data, signature)`.
+- Tăng nonce của `from` để tránh replay attack.
+- Thực hiện chuyển token từ `from` đến `to`.
+
+---
+
+#### balanceOfByEIP712
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| auth | Dữ liệu xác thực `BalanceOfData` |
+
+**Các công việc thực hiện:**
+- Kiểm tra thời gian hợp lệ của chữ ký.
+- Xác thực địa chỉ `auth.owner` thông qua chữ ký số.
+- Trả về số dư của `auth.owner` nếu xác thực thành công.
+
+---
+
+#### approveByEIP712
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| auth | Dữ liệu xác thực `ApproveData` |
+
+**Các công việc thực hiện:**
+- Kiểm tra thời gian hợp lệ của chữ ký.
+- Kiểm tra nonce để đảm bảo không có giao dịch trùng lặp.
+- Xác thực chữ ký số để đảm bảo tính hợp lệ.
+- Tăng nonce của `auth.owner`.
+- Cấp quyền sử dụng token cho `auth.spender`.
+
+---
+
+#### transferByEIP712
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| auth | Dữ liệu xác thực `TransferData` |
+
+**Các công việc thực hiện:**
+- Kiểm tra thời gian hợp lệ của chữ ký.
+- Kiểm tra nonce để đảm bảo không có giao dịch trùng lặp.
+- Xác thực chữ ký số để đảm bảo tính hợp lệ.
+- Tăng nonce của `auth.from`.
+- Chuyển token từ `auth.from` đến `auth.to`.
+
+### WhisprPrivacyPolicy
+
+#### grant
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| to | Địa chỉ sẽ được cấp quyền |
+| accessType | Loại quyền riêng tư (ví dụ: `PrivacyPolicy.Reveal`) |
+
+**Các công việc thực hiện:**
+- Kiểm tra xem quyền truy cập đã được cấp chưa bằng `grantedAccess[msg.sender][to]`.
+- Nếu chưa cấp quyền, cập nhật `grantedAccess[msg.sender][to]` bằng cách sử dụng `Bitmask.set(accessIndex)`.
+- Nếu quyền đã được cấp, báo lỗi `"Access already granted"`.
+
+---
+
+#### revoke
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| from | Địa chỉ bị thu hồi quyền |
+| accessType | Loại quyền riêng tư cần thu hồi |
+
+**Các công việc thực hiện:**
+- Kiểm tra xem quyền truy cập đã được cấp chưa bằng `grantedAccess[msg.sender][from]`.
+- Nếu có quyền, xóa quyền truy cập bằng `Bitmask.unset(accessIndex)`.
+- Nếu chưa có quyền, báo lỗi `"No access granted yet"`.
+
+---
+
+#### hasAccess
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| owner | Địa chỉ của người sở hữu thông tin |
+| accessor | Địa chỉ của người muốn truy cập thông tin |
+| accessType | Loại quyền riêng tư cần kiểm tra |
+
+**Các công việc thực hiện:**
+- Kiểm tra xem `accessor` có quyền truy cập vào dữ liệu của `owner` hay không.
+- Trả về `true` nếu `grantedAccess[owner][accessor]` chứa `accessType`, ngược lại trả về `false`.
+
+
 ## Cài đặt mã nguồn
 ## Các vấn đề chưa giải quyết
