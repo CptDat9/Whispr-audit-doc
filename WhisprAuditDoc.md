@@ -481,6 +481,169 @@
 **Các công việc thực hiện:**
 - Kiểm tra xem `accessor` có quyền truy cập vào dữ liệu của `owner` hay không.
 - Trả về `true` nếu `grantedAccess[owner][accessor]` chứa `accessType`, ngược lại trả về `false`.
+### WhisprBridge
+
+#### initialize
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| _whisprUSD | Địa chỉ của token WhisprUSD |
+| _whisprUSDMinter | Địa chỉ của hợp đồng minter cho WhisprUSD |
+| _thornUSD | Địa chỉ của token ThornUSD |
+| _stableSwapRouter | Địa chỉ của router hoán đổi stablecoin |
+| _assetForwarder | Địa chỉ của hợp đồng chuyển tiếp tài sản |
+| _refundWalletEntrypoint | Địa chỉ của hợp đồng tạo ví hoàn tiền |
+
+**Các công việc thực hiện:**
+- Khởi tạo quyền truy cập bằng `AccessControl`.
+- Gán vai trò `DEFAULT_ADMIN_ROLE` cho `msg.sender`.
+- Lưu trữ các địa chỉ của các hợp đồng liên quan.
+
+---
+
+#### init2e2Proxy
+**Input:**  
+Không có.
+
+**Các công việc thực hiện:**
+- Yêu cầu người gọi phải có vai trò `DEFAULT_ADMIN_ROLE`.
+- Tạo khóa công khai và khóa riêng Curve25519 bằng `Sapphire.generateCurve25519KeyPair`.
+
+---
+
+#### getPublicKey
+**Input:**  
+Không có.
+
+**Output:**
+- Trả về khóa công khai Curve25519.
+
+**Các công việc thực hiện:**
+- Lấy và trả về giá trị khóa công khai Curve25519.
+
+---
+
+#### bridge
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| approveData | Dữ liệu phê duyệt giao dịch (`IWhisprERC20.ApproveData`) |
+| amount | Số lượng WhisprUSD cần chuyển |
+| tokenOut | Token đầu ra sau hoán đổi |
+| amountOutMin | Số lượng tối thiểu của `tokenOut` nhận được sau hoán đổi |
+| path | Đường dẫn hoán đổi token |
+| flags | Cờ cho phép hoán đổi |
+| bridgeData | Dữ liệu cầu nối (`BridgeData`) |
+
+**Các công việc thực hiện:**
+1. Xác thực và phê duyệt giao dịch WhisprUSD bằng `approveByEIP712`.
+2. Chuyển `amount` WhisprUSD từ `approveData.owner` đến hợp đồng.
+3. Đốt (burn) WhisprUSD để nhận ThornUSD.
+4. Hoán đổi ThornUSD thành `tokenOut` bằng `stableSwapRouter`.
+5. Tạo `depositId` thông qua `assetForwarder`.
+6. Phê duyệt `tokenOut` cho `assetForwarder`.
+7. Tạo địa chỉ ví hoàn tiền cho `approveData.owner`.
+8. Gửi tài sản đến hợp đồng `assetForwarder`.
+9. Ghi nhận sự kiện `BridgeSuccess`.
+
+---
+
+#### bridgeEncrypt
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| peerPublicKey | Khóa công khai của bên gửi |
+| nonce | Nonce để giải mã dữ liệu |
+| data | Dữ liệu đã mã hóa |
+| amount | Số lượng WhisprUSD cần chuyển |
+| tokenOut | Token đầu ra sau hoán đổi |
+| amountOutMin | Số lượng tối thiểu của `tokenOut` nhận được sau hoán đổi |
+| path | Đường dẫn hoán đổi token |
+| flags | Cờ cho phép hoán đổi |
+| bridgeData | Dữ liệu cầu nối (`BridgeData`) |
+
+**Các công việc thực hiện:**
+1. Tạo khóa đối xứng từ khóa công khai `peerPublicKey` và khóa riêng `privateKey`.
+2. Giải mã dữ liệu `data` bằng `Sapphire.decrypt`.
+3. Giải mã `approveData` từ `plaintext`.
+4. Gọi hàm `bridge` với `approveData` và các tham số tương ứng.
+
+---
+
+#### update
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| _refundWalletEntrypoint | Địa chỉ mới của hợp đồng ví hoàn tiền |
+
+**Các công việc thực hiện:**
+- Yêu cầu người gọi phải có vai trò `DEFAULT_ADMIN_ROLE`.
+- Cập nhật địa chỉ `refundWalletEntrypoint`.
+### WhisprMinter
+
+#### initialize
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| _whisprUSD | Địa chỉ của token WhisprUSD |
+| _thornUSD | Địa chỉ của token ThornUSD |
+
+**Các công việc thực hiện:**
+- Khởi tạo hợp đồng với hai địa chỉ token `whisprUSD` và `thornUSD`.
+- Gán vai trò `DEFAULT_ADMIN_ROLE` cho `msg.sender`.
+
+---
+
+#### mintWhisprUSD
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| amount | Số lượng ThornUSD cần chuyển đổi |
+| receiver | Địa chỉ nhận WhisprUSD |
+
+**Output:**
+- Trả về số lượng WhisprUSD được mint.
+
+**Các công việc thực hiện:**
+1. Kiểm tra hợp đồng không bị tạm dừng (`whenNotPaused`).
+2. Chuyển `amount` ThornUSD từ `msg.sender` đến hợp đồng.
+3. Mint số lượng tương ứng WhisprUSD cho `receiver`.
+4. Trả về số lượng WhisprUSD đã mint.
+
+---
+
+#### burnWhisprUSD
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| amount | Số lượng WhisprUSD cần đốt |
+| receiver | Địa chỉ nhận ThornUSD sau khi đốt |
+
+**Các công việc thực hiện:**
+1. Kiểm tra hợp đồng không bị tạm dừng (`whenNotPaused`).
+2. Chuyển `amount` WhisprUSD từ `msg.sender` đến hợp đồng.
+3. Đốt (burn) số lượng WhisprUSD tương ứng.
+4. Chuyển `amount` ThornUSD đến `receiver`.
+
+---
+
+#### pause
+**Input:**  
+Không có.
+
+**Các công việc thực hiện:**
+- Kiểm tra người gọi có quyền `DEFAULT_ADMIN_ROLE`.
+- Tạm dừng hợp đồng (`_pause`).
+
+---
+
+#### unpause
+**Input:**  
+Không có.
+
+**Các công việc thực hiện:**
+- Kiểm tra người gọi có quyền `DEFAULT_ADMIN_ROLE`.
+- Tiếp tục hoạt động hợp đồng (`_unpause`).
 
 
 ## Cài đặt mã nguồn
