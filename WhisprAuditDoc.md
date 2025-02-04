@@ -133,6 +133,83 @@
 | `whisprUSD` | Địa chỉ của token WhisprUSD, được mint khi nhận ThornUSD. |
 | `thornUSD`  | Địa chỉ của token ThornUSD, được cung cấp vào pool để đổi lấy WhisprUSD. |
 ### Các usecase quan trọng
+#### WhisprECDSA
+
+#### _getNonce
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| owner | Địa chỉ của người dùng cần lấy nonce |
+
+**Các công việc thực hiện:**
+- Trả về giá trị nonce hiện tại của địa chỉ `owner`.
+
+---
+
+#### _verifyApprove
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| owner | Địa chỉ của người cấp quyền |
+| spender | Địa chỉ của người được cấp quyền |
+| amount | Số lượng token được cấp quyền |
+| data | Dữ liệu chữ ký kèm theo |
+| signature | Chữ ký số xác thực giao dịch |
+
+**Các công việc thực hiện:**
+- Giải mã dữ liệu `data` để lấy các tham số cần thiết.
+- Kiểm tra các tham số có trùng khớp với giá trị được cung cấp hay không.
+- Kiểm tra hành động có phải `APPROVE` không.
+- Xác minh nonce để đảm bảo không có giao dịch trùng lặp.
+- Kiểm tra thời gian hợp lệ của chữ ký.
+- Xác thực chữ ký với hàm `verifyEthMessage`.
+
+---
+
+#### _verifyTransfer
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| owner | Địa chỉ của người gửi token |
+| spender | Địa chỉ của người thực hiện giao dịch |
+| amount | Số lượng token được gửi |
+| data | Dữ liệu chữ ký kèm theo |
+| signature | Chữ ký số xác thực giao dịch |
+
+**Các công việc thực hiện:**
+- Giải mã dữ liệu `data` để lấy các tham số cần thiết.
+- Kiểm tra các tham số có trùng khớp với giá trị được cung cấp hay không.
+- Kiểm tra hành động có phải `TRANSFER` không.
+- Xác minh nonce để đảm bảo không có giao dịch trùng lặp.
+- Kiểm tra thời gian hợp lệ của chữ ký.
+- Xác thực chữ ký với hàm `verifyEthMessage`.
+
+---
+
+#### verifyEthMessage
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| signer | Địa chỉ của người ký |
+| data | Dữ liệu cần kiểm tra |
+| signature | Chữ ký số để xác thực |
+
+**Các công việc thực hiện:**
+- Tạo `messageHash` từ `data`.
+- Chuyển đổi `messageHash` thành định dạng Ethereum Signed Message.
+- Trích xuất địa chỉ từ chữ ký.
+- Kiểm tra xem địa chỉ trích xuất có khớp với `signer` không.
+
+---
+
+#### _incrementNonce
+**Input:**
+| Parameter | Meaning |
+|-----------|---------|
+| owner | Địa chỉ của người cần tăng nonce |
+
+**Các công việc thực hiện:**
+- Tăng giá trị nonce của `owner` lên 1.
 
 ## Cài đặt mã nguồn
 ## Các vấn đề chưa giải quyết
