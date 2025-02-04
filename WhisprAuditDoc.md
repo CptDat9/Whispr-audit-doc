@@ -644,4 +644,565 @@ Không có.
 
 
 ## Cài đặt mã nguồn
+### **WhisprERC20**
+
+**Import:**
+- `ECDSA` từ `"ECDSA.sol"` của `OpenZeppelin`
+- `MessageHashUtils` từ `MessageHashUtils.sol"` của `OpenZeppelin`
+
+**Khai báo:**
+```solidity
+mapping(address => uint256) private _nonce;
+
+bytes32 public APPROVE_ACTION = keccak256("APPROVE");
+
+bytes32 public TRANSFER_ACTION = keccak256("TRANSFER");
+```
+
+**Function:**
+
+- `_getNonce`
+```solidity
+function _getNonce(address owner) internal view returns (uint256) {
+        return _nonce[owner];
+}
+```
+
+- `_verifyApprove`
+```solidity
+function _verifyApprove(
+        address owner,
+        address spender,
+        uint256 amount,
+        bytes calldata data,
+        bytes calldata signature
+    ) internal view {
+        (
+            address _owner,
+            address _spender,
+            uint256 _amount,
+            bytes32 _action,
+            uint256 _nonceNumber,
+            uint256 _validAfter,
+            uint256 _validUntil
+        ) = abi.decode(
+                data,
+                (address, address, uint256, bytes32, uint256, uint256, uint256)
+            );
+        require(owner == _owner, "PrivacyERC20Verify: owner mismatch");
+        require(spender == _spender, "PrivacyERC20Verify: spender mismatch");
+        require(amount == _amount, "PrivacyERC20Verify: amount mismatch");
+        require(
+            _action == APPROVE_ACTION,
+            "PrivacyERC20Verify: action mismatch"
+        );
+        require(
+            _nonceNumber == _nonce[owner],
+            "PrivacyERC20Verify: invalid nonce"
+        );
+        require(
+            block.timestamp >= _validAfter,
+            "PrivacyERC20Verify: signature not yet valid"
+        );
+        require(
+            block.timestamp <= _validUntil,
+            "PrivacyERC20Verify: signature expired"
+        );
+        require(
+            verifyEthMessage(owner, data, signature),
+            "PrivacyERC20Verify: invalid signature"
+        );
+    }
+```
+- `_verifyTransfer`
+```solidity
+function _verifyTransfer(
+        address owner,
+        address spender,
+        uint256 amount,
+        bytes calldata data,
+        bytes calldata signature
+    ) internal view {
+        (
+            address _owner,
+            address _spender,
+            uint256 _amount,
+            bytes32 _action,
+            uint256 _nonceNumber,
+            uint256 _validAfter,
+            uint256 _validUntil
+        ) = abi.decode(
+                data,
+                (address, address, uint256, bytes32, uint256, uint256, uint256)
+            );
+        require(owner == _owner, "PrivacyERC20Verify: owner mismatch");
+        require(spender == _spender, "PrivacyERC20Verify: spender mismatch");
+        require(amount == _amount, "PrivacyERC20Verify: amount mismatch");
+        require(
+            _action == TRANSFER_ACTION,
+            "PrivacyERC20Verify: action mismatch"
+        );
+        require(
+            _nonceNumber == _nonce[owner],
+            "PrivacyERC20Verify: invalid nonce"
+        );
+        require(
+            block.timestamp >= _validAfter,
+            "PrivacyERC20Verify: signature not yet valid"
+        );
+        require(
+            block.timestamp <= _validUntil,
+            "PrivacyERC20Verify: signature expired"
+        );
+
+        require(
+            verifyEthMessage(owner, data, signature),
+            "PrivacyERC20Verify: invalid signature"
+        );
+    }
+```
+
+- `verifyEthMessage`
+```solidity
+function verifyEthMessage(
+        address signer,
+        bytes calldata data,
+        bytes calldata signature
+    ) public pure returns (bool) {
+        bytes32 messageHash = keccak256(data);
+        bytes32 ethSignedMessageHash = MessageHashUtils.toEthSignedMessageHash(
+            messageHash
+        );
+
+        address recoveredSigner = ECDSA.recover(
+            ethSignedMessageHash,
+            signature
+        );
+
+        return recoveredSigner == signer;
+    }
+
+    function _incrementNonce(address owner) internal {
+        _nonce[owner]++;
+    }
+```
+
+### **WhisprEIP712**
+**Import:**
+- `None`
+
+**Khai báo:**
+
+```solidity
+    struct SignatureRSV {
+        bytes32 r;
+        bytes32 s;
+        uint256 v;
+    }
+    bytes32 public constant EIP712_DOMAIN_TYPEHASH =
+        keccak256(
+            "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+        );
+
+    bytes32 public constant BALANCEOF_CODE = keccak256("Whispr.balanceOf");
+    bytes32 public constant APPROVE_CODE = keccak256("Whispr.approve");
+    bytes32 public constant TRANSFER_CODE = keccak256("Whispr.transfer");
+
+    bytes32 public DOMAIN_BALANCEOF;
+    bytes32 public DOMAIN_APPROVE;
+    bytes32 public DOMAIN_TRANSFER;
+
+    struct ApproveData {
+        address owner;
+        address spender;
+        uint256 amount;
+        uint256 nonce;
+        uint256 validAfter;
+        uint256 validUntil;
+        SignatureRSV rsv;
+    }
+
+    struct BalanceOfData {
+        address owner;
+        uint256 validAfter;
+        uint256 validUntil;
+        SignatureRSV rsv;
+    }
+
+    struct TransferData {
+        address from;
+        address to;
+        uint256 amount;
+        uint256 nonce;
+        uint256 validAfter;
+        uint256 validUntil;
+        SignatureRSV rsv;
+    }
+
+    mapping(address => uint256) internal _nonce_eip712;
+```
+**Constructor:**
+```solidity
+constructor() {
+        DOMAIN_BALANCEOF = keccak256(
+            abi.encode(
+                EIP712_DOMAIN_TYPEHASH,
+                BALANCEOF_CODE,
+                keccak256("1"),
+                block.chainid,
+                address(this)
+            )
+        );
+
+        DOMAIN_APPROVE = keccak256(
+            abi.encode(
+                EIP712_DOMAIN_TYPEHASH,
+                APPROVE_CODE,
+                keccak256("1"),
+                block.chainid,
+                address(this)
+            )
+        );
+
+        DOMAIN_TRANSFER = keccak256(
+            abi.encode(
+                EIP712_DOMAIN_TYPEHASH,
+                TRANSFER_CODE,
+                keccak256("1"),
+                block.chainid,
+                address(this)
+            )
+        );
+    }
+```
+**Modifiers:**
+- `authenticatedBalance:`
+  
+  ```solidity
+      modifier authenticatedBalance(BalanceOfData calldata auth) {
+        require(
+            block.timestamp >= auth.validAfter,
+            "WhisprEIP712: signature not yet valid"
+        );
+        require(
+            block.timestamp <= auth.validUntil,
+            "WhisprEIP712: signature expired"
+        );
+        bytes32 BALANCEOF_TYPEHASH = keccak256(
+            bytes(
+                "balanceOf(address owner,uint256 validAfter,uint256 validUntil)"
+            )
+        );
+        // Validate EIP-712 sign-in authentication.
+        bytes32 authdataDigest = keccak256(
+            abi.encodePacked(
+                "\x19\x01",
+                DOMAIN_BALANCEOF,
+                keccak256(
+                    abi.encode(
+                        BALANCEOF_TYPEHASH,
+                        auth.owner,
+                        auth.validAfter,
+                        auth.validUntil
+                    )
+                )
+            )
+        );
+
+        address recovered_address = ecrecover(
+            authdataDigest,
+            uint8(auth.rsv.v),
+            auth.rsv.r,
+            auth.rsv.s
+        );
+        require(
+            auth.owner == recovered_address,
+            "WhisprEIP712: Invalid BalanceOf Authentication"
+        );
+        _;
+    }
+  ```
+  
+- `authenticatedApprove:`
+  
+  ```solidity
+      modifier authenticatedApprove(ApproveData calldata auth) {
+        require(
+            block.timestamp >= auth.validAfter,
+            "WhisprEIP712: signature not yet valid"
+        );
+        require(
+            block.timestamp <= auth.validUntil,
+            "WhisprEIP712: signature expired"
+        );
+        require(
+            auth.nonce == _nonce_eip712[auth.owner],
+            "WhisprEIP712: invalid nonce"
+        );
+        bytes32 APPROVE_TYPEHASH = keccak256(
+            "approve(address owner,address spender,uint256 amount,uint256 nonce,uint256 validAfter,uint256 validUntil)"
+        );
+        // Validate EIP-712 sign-in authentication.
+        bytes32 authdataDigest = keccak256(
+            abi.encodePacked(
+                "\x19\x01",
+                DOMAIN_APPROVE,
+                keccak256(
+                    abi.encode(
+                        APPROVE_TYPEHASH,
+                        auth.owner,
+                        auth.spender,
+                        auth.amount,
+                        auth.nonce,
+                        auth.validAfter,
+                        auth.validUntil
+                    )
+                )
+            )
+        );
+
+        address recovered_address = ecrecover(
+            authdataDigest,
+            uint8(auth.rsv.v),
+            auth.rsv.r,
+            auth.rsv.s
+        );
+
+        require(
+            auth.owner == recovered_address,
+            "WhisprEIP712: Invalid Appvove Authentication"
+        );
+        _;
+    }
+  ```
+  
+- `authenticatedTransfer:`
+  
+  ```solidity
+      modifier authenticatedTransfer(TransferData calldata auth) {
+        require(
+            block.timestamp >= auth.validAfter,
+            "WhisprEIP712: signature not yet valid"
+        );
+        require(
+            block.timestamp <= auth.validUntil,
+            "WhisprEIP712: signature expired"
+        );
+        require(
+            auth.nonce == _nonce_eip712[auth.from],
+            "WhisprEIP712: invalid nonce"
+        );
+        bytes32 TRANSFER_TYPEHASH = keccak256(
+            "transfer(address from,address to,uint256 amount,uint256 nonce,uint256 validAfter,uint256 validUntil)"
+        );
+        // Validate EIP-712 sign-in authentication.
+        bytes32 authdataDigest = keccak256(
+            abi.encodePacked(
+                "\x19\x01",
+                DOMAIN_TRANSFER,
+                keccak256(
+                    abi.encode(
+                        TRANSFER_TYPEHASH,
+                        auth.from,
+                        auth.to,
+                        auth.amount,
+                        auth.nonce,
+                        auth.validAfter,
+                        auth.validUntil
+                    )
+                )
+            )
+        );
+
+        address recovered_address = ecrecover(
+            authdataDigest,
+            uint8(auth.rsv.v),
+            auth.rsv.r,
+            auth.rsv.s
+        );
+
+        require(
+            auth.from == recovered_address,
+            "WhisprEIP712: Invalid Transfer Authentication"
+        );
+        _;
+    }
+  ```
+
+**Functions:**
+- `_getNonceEIP712:`
+
+  ```solidity
+      function _getNonceEIP712(address owner) internal view returns (uint256) {
+        return _nonce_eip712[owner];
+     }
+  ```
+
+- `_incrementNonceEIP712:`
+
+  ```solidity
+    function _incrementNonceEIP712(address owner) internal {
+        _nonce_eip712[owner]++;
+    }
+  ```
+
+### **WhipsrPrivacyPolicy**
+**Import:**
+- Tạo thư viện `Bitmask`
+  ```solidity
+  library Bitmask {
+    function get(uint256 bitmap, uint256 index) internal pure returns (bool) {
+        uint256 mask = 1 << (index & 0xff);
+        return bitmap & mask != 0;
+    }
+
+    function setTo(uint256 bitmap, uint256 index, bool value) internal pure returns (uint256) {
+        if (value) {
+            return set(bitmap, index);
+        } else {
+            return unset(bitmap, index);
+        }
+    }
+
+    function set(uint256 bitmap, uint256 index) internal pure returns (uint256) {
+        uint256 mask = 1 << (index & 0xff);
+        return bitmap | mask;
+    }
+
+    function unset(uint256 bitmap, uint256 index) internal pure returns (uint256) {
+        uint256 mask = 1 << (index & 0xff);
+        return bitmap & ~mask;
+    }
+  }
+  ``` 
+**Khai báo:**
+
+  ```solidity
+  using Bitmask for uint256;
+
+  enum PrivacyPolicy {
+        Reveal
+  }
+
+  mapping(address => mapping(address => uint256)) internal grantedAccess;
+  ```
+
+**Functions:**
+
+- `grant`
+  
+  ```solidity
+  function grant(address to, PrivacyPolicy accessType) public {
+        uint256 accessIndex = uint256(accessType);
+
+        require(
+            !grantedAccess[msg.sender][to].get(accessIndex),
+            "Access already granted"
+        );
+
+        grantedAccess[msg.sender][to] = grantedAccess[msg.sender][to].set(
+            accessIndex
+        );
+    }
+  ```
+
+- `revoke`
+
+  ```soldity
+  function revoke(address from, PrivacyPolicy accessType) public {
+        uint256 accessIndex = uint256(accessType);
+
+        require(
+            grantedAccess[msg.sender][from].get(accessIndex),
+            "No access granted yet"
+        );
+        grantedAccess[msg.sender][from] = grantedAccess[msg.sender][from].unset(
+            accessIndex
+        );
+    }
+  ```
+
+- `hasAccess`
+
+  ```solidity
+  function hasAccess(
+        address owner,
+        address accessor,
+        PrivacyPolicy accessType
+    ) internal view returns (bool) {
+        return grantedAccess[owner][accessor].get(uint256(accessType));
+    }
+  ```
+### **WhisprERC20**
+**Import:**
+- `IERC20.sol` từ `OpenZeppelin`
+- `AcessControl.sol` từ `OpenZeppelin`
+- `WhisprEDCSA.sol`
+- `WhisprEIP712.sol`
+- `WhisprPrivacyPolicy.sol`
+
+**Inheritance:**
+- `IERC20`
+- `AccesControl`
+- `WhisprEDCSA`
+- `WhisprEIP712`
+- `WhisprPrivacyPolicy`
+
+**Khai báo:**
+
+```solidity
+bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+
+mapping(address => uint256) internal _balances;
+mapping(address => mapping(address => uint256)) internal _allowances;
+
+string public name;
+string public symbol;
+uint8 public decimals;
+uint256 public _globalTotalSupply;
+```
+
+**Constructor:**
+
+ ```solidity
+constructor(
+        string memory name_,
+        string memory symbol_,
+        uint8 decimals_,
+        address owner
+    ) WhisprEIP712() {
+        name = name_;
+        symbol = symbol_;
+        decimals = decimals_;
+        _grantRole(DEFAULT_ADMIN_ROLE, owner);
+    }
+```
+
+**Functions:**
+- `mint`
+
+```solidity
+function mint(
+        address to,
+        uint256 amount
+    ) external virtual onlyRole(MINTER_ROLE) {
+        _mint(to, amount);
+    }
+function _mint(address to, uint256 amount) internal {
+        _balances[to] += amount;
+        _globalTotalSupply += amount;
+    }
+```
+
+- `burn`
+
+```solidity
+function burn(uint256 amount) external virtual {
+        _burn(msg.sender, amount);
+    }
+function _burn(address from, uint256 amount) internal {
+        _balances[from] -= amount;
+        _globalTotalSupply -= amount;
+    }
+```
 ## Các vấn đề chưa giải quyết
