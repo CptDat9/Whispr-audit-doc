@@ -10,7 +10,6 @@
 - Tạo cơ chế wrap/unwrap token để che giấu nguồn gốc của tài sản khi giao dịch.
 - Hỗ trợ các chức năng quản lý quyền riêng tư và uỷ quyền giao dịch.
 ## Giải pháp
-## Giải pháp
 
 ### 🔧 Xây dựng các contract sau:
 
