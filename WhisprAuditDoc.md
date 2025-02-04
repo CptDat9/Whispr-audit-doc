@@ -644,7 +644,7 @@ Không có.
 
 
 ## Cài đặt mã nguồn
-### **WhisprERC20**
+### **WhisprEDCSA**
 
 **Import:**
 - `ECDSA` từ `"ECDSA.sol"` của `OpenZeppelin`
