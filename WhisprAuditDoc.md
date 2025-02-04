@@ -144,7 +144,7 @@
 **Các công việc thực hiện:**
 - Trả về giá trị nonce hiện tại của địa chỉ `owner`.
 
----
+
 
 #### _verifyApprove
 **Input:**
@@ -164,7 +164,7 @@
 - Kiểm tra thời gian hợp lệ của chữ ký.
 - Xác thực chữ ký với hàm `verifyEthMessage`.
 
----
+
 
 #### _verifyTransfer
 **Input:**
@@ -184,7 +184,6 @@
 - Kiểm tra thời gian hợp lệ của chữ ký.
 - Xác thực chữ ký với hàm `verifyEthMessage`.
 
----
 
 #### verifyEthMessage
 **Input:**
@@ -200,7 +199,7 @@
 - Trích xuất địa chỉ từ chữ ký.
 - Kiểm tra xem địa chỉ trích xuất có khớp với `signer` không.
 
----
+
 
 #### _incrementNonce
 **Input:**
