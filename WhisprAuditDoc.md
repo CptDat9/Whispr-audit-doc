@@ -499,7 +499,6 @@
 - Gán vai trò `DEFAULT_ADMIN_ROLE` cho `msg.sender`.
 - Lưu trữ các địa chỉ của các hợp đồng liên quan.
 
----
 
 #### init2e2Proxy
 **Input:**  
@@ -509,7 +508,7 @@ Không có.
 - Yêu cầu người gọi phải có vai trò `DEFAULT_ADMIN_ROLE`.
 - Tạo khóa công khai và khóa riêng Curve25519 bằng `Sapphire.generateCurve25519KeyPair`.
 
----
+
 
 #### getPublicKey
 **Input:**  
@@ -521,7 +520,7 @@ Không có.
 **Các công việc thực hiện:**
 - Lấy và trả về giá trị khóa công khai Curve25519.
 
----
+
 
 #### bridge
 **Input:**
@@ -568,7 +567,7 @@ Không có.
 3. Giải mã `approveData` từ `plaintext`.
 4. Gọi hàm `bridge` với `approveData` và các tham số tương ứng.
 
----
+
 
 #### update
 **Input:**
@@ -592,7 +591,7 @@ Không có.
 - Khởi tạo hợp đồng với hai địa chỉ token `whisprUSD` và `thornUSD`.
 - Gán vai trò `DEFAULT_ADMIN_ROLE` cho `msg.sender`.
 
----
+
 
 #### mintWhisprUSD
 **Input:**
@@ -610,7 +609,7 @@ Không có.
 3. Mint số lượng tương ứng WhisprUSD cho `receiver`.
 4. Trả về số lượng WhisprUSD đã mint.
 
----
+
 
 #### burnWhisprUSD
 **Input:**
@@ -625,7 +624,6 @@ Không có.
 3. Đốt (burn) số lượng WhisprUSD tương ứng.
 4. Chuyển `amount` ThornUSD đến `receiver`.
 
----
 
 #### pause
 **Input:**  
@@ -635,7 +633,6 @@ Không có.
 - Kiểm tra người gọi có quyền `DEFAULT_ADMIN_ROLE`.
 - Tạm dừng hợp đồng (`_pause`).
 
----
 
 #### unpause
 **Input:**  
