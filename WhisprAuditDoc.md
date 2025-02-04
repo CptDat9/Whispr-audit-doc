@@ -71,7 +71,7 @@
 | `DOMAIN_TRANSFER`   | Hash của domain transfer |
 | `_nonce_eip712`     | Mapping lưu trữ nonce của từng địa chỉ trong EIP-712 |
 
-## Structs trong WhisprEIP712
+## Struct trong WhisprEIP712
 
 | Struct           | Thuộc tính         | Ý nghĩa |
 |-----------------|------------------|---------|
