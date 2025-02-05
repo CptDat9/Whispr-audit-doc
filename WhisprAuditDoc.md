@@ -2629,7 +2629,7 @@ function getPublicKey() public view returns (bytes32) {
 **Import:**
 - `Initialize.sol` từ `OpenZeppelin`
 
-**Khai báo: **
+**Khai báo:**
 
 ```solidity
 address public admin
