@@ -26,8 +26,7 @@
    - Việc quản lý và thực hiện rút tiền chỉ có thể được thực hiện bởi Entrypoint, đảm bảo quyền hạn rõ ràng và an toàn.  
 
 
-## Các vấn đề cần giải quyết
-### Yêu cầu contract cần thực hiện thành công:
+## Yêu cầu contract cần thực hiện thành công:
 - Cơ chế giao dịch ẩn danh cho các token ERC-20 (contract hiện tại hỗ trợ WhisprUSD).
 - Bảo mật thông tin giao dịch, không để lộ các thông tin giao dịch(địa chỉ người dùng, số lượng token, lịch sử giao dịch,...) trên blockchain.
 - Xác thực giao dịch bằng EIP-712 để giảm chi phí gas và tăng tính bảo mật.
@@ -36,6 +35,7 @@
 - Cơ chế RefundWallet:
 Hỗ trợ hoàn tiền tự động cho các giao dịch thất bại hoặc cần hủy.
 Tạo ví hoàn tiền riêng biệt cho từng giao dịch để tối ưu hóa bảo mật.
+## Các vấn đề
 ## Giải pháp
 
 ###  Xây dựng các contract sau:
