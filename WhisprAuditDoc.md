@@ -725,6 +725,233 @@ Không có.
 - Kiểm tra người gọi có quyền `DEFAULT_ADMIN_ROLE`.
 - Tiếp tục hoạt động hợp đồng (`_unpause`).
 
+### RefundWallet
+
+#### initialize
+**Input:**
+| Parameter   | Meaning                          |
+|-------------|----------------------------------|
+| _entrypoint | Địa chỉ của Entrypoint contract. |
+| _owner      | Địa chỉ chủ sở hữu ví.           |
+| _depositId  | ID của khoản tiền nạp.           |
+
+**Các công việc thực hiện:**
+- Thiết lập địa chỉ Entrypoint (`entrypoint`) cho ví hoàn trả.
+- Gán quyền sở hữu ví (`owner`) cho địa chỉ người dùng.
+- Lưu trữ ID khoản tiền nạp (`depositId`) để theo dõi giao dịch.
+
+
+
+#### withdraw
+**Input:**
+| Parameter   | Meaning                           |
+|-------------|-----------------------------------|
+| token       | Địa chỉ token ERC-20 cần rút.     |
+| receiver    | Địa chỉ nhận token.               |
+| amount      | Số lượng token cần rút.           |
+
+**Các công việc thực hiện:**
+- Kiểm tra caller phải là Entrypoint bằng `onlyEntrypoint` modifier.
+- Gọi hàm `IERC20(token).transfer(receiver, amount)` để chuyển token từ ví hoàn trả tới địa chỉ người nhận.
+
+
+
+#### **Các đặc điểm chính của contract**
+- **VERSION:** Chuỗi phiên bản cố định `"0.0.1"`, giúp theo dõi thay đổi của contract.
+- **Entrypoint restriction:** Chỉ Entrypoint có quyền gọi các hành động quan trọng như rút tiền.
+- **ERC-20 token management:** Hỗ trợ rút token ERC-20 từ ví hoàn trả.
+
+### RefundWalletEntrypoint
+
+#### initialize
+**Input:**
+| Parameter             | Meaning                                          |
+|-----------------------|--------------------------------------------------|
+| _thornUSD             | Địa chỉ token `thornUSD` sử dụng trong hệ thống. |
+| _whisprMinter         | Địa chỉ của contract mint `WhisprUSD`.           |
+| _stableSwapRouter     | Địa chỉ của contract swap stablecoin.            |
+| _basicImplementation  | Địa chỉ của `RefundWallet` implementation cơ bản.|
+
+**Các công việc thực hiện:**
+- Thiết lập các địa chỉ liên quan cho hệ thống (`thornUSD`, `whisprMinter`, `stableSwapRouter`, `basicImplementation`).
+- Cấp quyền admin cho người triển khai (`msg.sender`) qua `DEFAULT_ADMIN_ROLE`.
+- Khởi tạo các giá trị cho xác thực EIP-712, bao gồm `EIP712_DOMAIN_TYPEHASH` và `DOMAIN_LOGIN`.
+
+
+
+#### createRefundWallet
+**Input:**
+| Parameter   | Meaning                               |
+|-------------|---------------------------------------|
+| owner       | Địa chỉ của chủ sở hữu ví hoàn trả.   |
+| depositId   | ID giao dịch nạp tiền tương ứng.      |
+
+**Các công việc thực hiện:**
+- Kiểm tra người gọi phải có quyền `BRIDGE_ROLE`.
+- Gọi hàm `_create` để tạo ví hoàn trả (Refund Wallet) với thông tin `owner` và `depositId`.
+- Trả về địa chỉ ví hoàn trả được tạo.
+
+
+
+#### _create (internal)
+**Input:**
+| Parameter   | Meaning                               |
+|-------------|---------------------------------------|
+| owner       | Địa chỉ của chủ sở hữu ví hoàn trả.   |
+| depositId   | ID giao dịch nạp tiền tương ứng.      |
+
+**Các công việc thực hiện:**
+- Sử dụng cơ chế proxy để triển khai ví hoàn trả (`RefundWallet`).
+- Gọi hàm `initialize` của ví hoàn trả với thông tin Entrypoint, chủ sở hữu và ID giao dịch.
+- Lưu trữ địa chỉ ví hoàn trả vào mapping `ownerToWallet` tương ứng với `owner`.
+- Tăng số lượng giao dịch của chủ sở hữu (`countTransaction`).
+- Phát ra sự kiện `CreateWallet` với địa chỉ ví và `depositId`.
+
+
+
+#### _withdraw (internal)
+**Input:**
+| Parameter     | Meaning                                          |
+|---------------|--------------------------------------------------|
+| owner         | Địa chỉ của chủ sở hữu ví hoàn trả.              |
+| wallet        | Địa chỉ ví hoàn trả thực hiện giao dịch.         |
+| token         | Địa chỉ token ERC-20 cần rút.                   |
+| amount        | Số lượng token cần rút.                         |
+| path          | Chuỗi token swap từ `token` sang `thornUSD`.    |
+| flag          | Các tham số cấu hình cho quá trình swap.        |
+| amountOutMin  | Số lượng `thornUSD` tối thiểu cần nhận.         |
+
+**Các công việc thực hiện:**
+- Gọi hàm `withdraw` của ví hoàn trả để chuyển token từ ví đến Entrypoint.
+- Kiểm tra đường dẫn swap (`path`) phải hợp lệ: bắt đầu từ `token` và kết thúc bằng `thornUSD`.
+- Thực hiện swap token thông qua `stableSwapRouter`.
+- Tính toán số lượng `thornUSD` nhận được sau swap.
+- Sử dụng `whisprMinter` để đổi `thornUSD` thành `WhisprUSD` và gửi đến địa chỉ `owner`.
+- Phát ra sự kiện `Withdraw` ghi nhận giao dịch.
+
+
+
+#### authenticatedEIP712 (modifier)
+**Các công việc thực hiện:**
+- Xác thực giao dịch đăng nhập thông qua cơ chế EIP-712.
+- Tính toán hash dữ liệu xác thực (EIP-712 digest) và địa chỉ được ký.
+- Kiểm tra chữ ký hợp lệ và khớp với `auth.owner`.
+
+
+
+#### login
+**Input:**
+| Parameter     | Meaning                           |
+|---------------|-----------------------------------|
+| data          | Dữ liệu đăng nhập EIP-712.       |
+
+**Output:**
+| Parameter     | Meaning                           |
+|---------------|-----------------------------------|
+| total         | Tổng số giao dịch của `data.owner`.|
+
+**Các công việc thực hiện:**
+- Xác thực dữ liệu đăng nhập qua `authenticatedEIP712`.
+- Trả về tổng số giao dịch của chủ sở hữu (`countTransaction`).
+
+
+
+#### getReceipt
+**Input:**
+| Parameter     | Meaning                           |
+|---------------|-----------------------------------|
+| data          | Dữ liệu đăng nhập EIP-712.       |
+| index         | Chỉ số giao dịch cần lấy thông tin.|
+
+**Output:**
+| Parameter     | Meaning                           |
+|---------------|-----------------------------------|
+| wallet        | Địa chỉ ví hoàn trả của giao dịch.|
+
+**Các công việc thực hiện:**
+- Xác thực dữ liệu đăng nhập qua `authenticatedEIP712`.
+- Trả về địa chỉ ví hoàn trả tương ứng với `index` của chủ sở hữu.
+
+
+### Wallet
+
+#### initialize
+**Input:**
+| Parameter   | Meaning                                  |
+|-------------|------------------------------------------|
+| _admin      | Địa chỉ của quản trị viên (admin).      |
+
+**Các công việc thực hiện:**
+- Thiết lập địa chỉ quản trị viên (`admin`) cho contract.
+- Chỉ có quản trị viên mới có thể thực hiện các hành động quản lý contract.
+
+
+
+#### execute_ncC
+**Input:**
+| Parameter   | Meaning                                   |
+|-------------|-------------------------------------------|
+| dest        | Địa chỉ của contract hoặc người nhận.    |
+| value       | Số lượng Ether cần gửi.                  |
+| func        | Dữ liệu mã (bytecode) của hàm cần gọi.   |
+
+**Các công việc thực hiện:**
+- Kiểm tra xem người gọi có phải là `admin` hay không.
+- Thực hiện gọi hàm vào địa chỉ đích (`dest`) với dữ liệu bytecode (`func`).
+- Sử dụng cơ chế `assembly` để gọi hợp đồng với các tham số đã cho.
+- Nếu gọi thành công, dữ liệu trả về sẽ được xử lý, nếu thất bại sẽ revert giao dịch.
+
+
+
+#### _call (internal)
+**Input:**
+| Parameter   | Meaning                                   |
+|-------------|-------------------------------------------|
+| target      | Địa chỉ của contract hoặc người nhận.    |
+| value       | Số lượng Ether cần gửi.                  |
+| data        | Dữ liệu bytecode của hàm cần gọi.        |
+
+**Các công việc thực hiện:**
+- Thực hiện gọi hợp đồng đích với dữ liệu bytecode (`data`) thông qua `assembly`.
+- Sử dụng chức năng `call` trong `assembly` để gửi Ether và dữ liệu tới contract đích.
+- Kiểm tra kết quả gọi và nếu thất bại, revert giao dịch và trả về lý do.
+
+
+
+#### onlyAdmin (modifier)
+**Các công việc thực hiện:**
+- Chỉ cho phép người gọi là quản trị viên (`admin`) thực hiện các hành động được bảo vệ bởi modifier này.
+- Nếu không phải quản trị viên, giao dịch sẽ bị từ chối với thông báo lỗi "only admin".
+
+### Proxy 
+
+#### Constructor
+**Input:**
+| Parameter        | Meaning                                           |
+|------------------|---------------------------------------------------|
+| _implementation | Địa chỉ của contract triển khai (implementation). |
+
+**Các công việc thực hiện:**
+- Kiểm tra `_implementation` không phải là địa chỉ `0x0`.
+- Lưu trữ địa chỉ `_implementation` vào bộ nhớ theo slot địa chỉ của chính `Proxy`.
+- Thiết lập `Proxy` để chuyển hướng tất cả các lời gọi đến contract triển khai (`_implementation`).
+
+
+
+#### fallback (fallback function)
+**Các công việc thực hiện:**
+- Lấy địa chỉ `implementation` được lưu trữ trong slot của `Proxy`.
+- Sao chép dữ liệu cuộc gọi (`calldata`) để chuyển tiếp đến `implementation`.
+- Sử dụng `delegatecall` để gọi hàm của `implementation` với dữ liệu đã nhận.
+- Nếu cuộc gọi thất bại (`delegatecall` trả về `0`), revert giao dịch và trả về dữ liệu lỗi.
+- Nếu cuộc gọi thành công, trả về dữ liệu nhận được từ `implementation`.
+
+#### Note:
+- **Slot lưu trữ `implementation`:** 
+  - Contract ban đầu sử dụng `sstore(address(), _implementation)`, nhưng thực tế, cách lưu này không an toàn. 
+  - Theo chuẩn [EIP-1967](https://eips.ethereum.org/EIPS/eip-1967), `implementation` nên được lưu ở một vị trí cụ thể để tránh xung đột dữ liệu.
+- **Không có hàm nâng cấp:** Hiện tại `Proxy` không có cách cập nhật `implementation`, điều này giới hạn khả năng nâng cấp.
+
 
 ## Cài đặt mã nguồn
 ### **WhisprEDCSA**
