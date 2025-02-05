@@ -1752,4 +1752,526 @@ function transferUseSignature(
     }
 ```
 
+### **WhisprBridge**
+**Import:**
+- `AccessControlUpgradeable.sol` từ `OppenZeppelin`
+- `ERC20.sol` từ `OpenZeppelin`
+- Các interface cần thiết
+  
+```solidity
+interface IWhisprERC20 {
+    struct SignatureRSV {
+        bytes32 r;
+        bytes32 s;
+        uint256 v;
+    }
+    struct ApproveData {
+        address owner;
+        address spender;
+        uint256 amount;
+        uint256 nonce;
+        uint256 validAfter;
+        uint256 validUntil;
+        SignatureRSV rsv;
+    }
+
+    function mint(address to, uint256 amount) external;
+
+    function burn(uint256 amount) external;
+
+    function totalSupply() external view returns (uint256);
+
+    function balanceOf(address account) external view returns (uint256);
+
+    function allowance(
+        address owner,
+        address spender
+    ) external view returns (uint256);
+
+    function approve(address spender, uint256 amount) external returns (bool);
+
+    function transfer(address to, uint256 amount) external returns (bool);
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 amount
+    ) external returns (bool);
+
+    function approveUseSignature(
+        address owner,
+        address spender,
+        uint256 amount,
+        bytes calldata data,
+        bytes calldata signature
+    ) external returns (bool);
+
+    function transferUseSignature(
+        address from,
+        address to,
+        uint256 amount,
+        bytes calldata data,
+        bytes calldata signature
+    ) external returns (bool);
+
+    function setToTalSupplyVisible(bool visible) external;
+
+    function approveByEIP712(ApproveData calldata data) external;
+}
+
+interface IWhisprMinter {
+    function mintWhisprUSD(
+        uint256 amount,
+        address receiver
+    ) external returns (uint256);
+
+    function burnWhisprUSD(uint256 amount, address receiver) external;
+}
+
+interface IRefundWalletEntrypoint {
+    function createRefundWallet(
+        address owner,
+        uint256 depositId
+    ) external returns (address);
+}
+
+interface IAssetForwarder {
+    event FundsDeposited(
+        uint256 partnerId,
+        uint256 amount,
+        bytes32 destChainIdBytes,
+        uint256 destAmount,
+        uint256 depositId,
+        address srcToken,
+        address depositor,
+        bytes recipient,
+        bytes destToken
+    );
+
+    event FundsDepositedWithMessage(
+        uint256 partnerId,
+        uint256 amount,
+        bytes32 destChainIdBytes,
+        uint256 destAmount,
+        uint256 depositId,
+        address srcToken,
+        bytes recipient,
+        address depositor,
+        bytes destToken,
+        bytes message
+    );
+    event FundsPaid(bytes32 messageHash, address forwarder, uint256 nonce);
+
+    event DepositInfoUpdate(
+        address srcToken,
+        uint256 feeAmount,
+        uint256 depositId,
+        uint256 eventNonce,
+        bool initiatewithdrawal,
+        address depositor
+    );
+
+    event FundsPaidWithMessage(
+        bytes32 messageHash,
+        address forwarder,
+        uint256 nonce,
+        bool execFlag,
+        bytes execData
+    );
+
+    struct RelayData {
+        uint256 amount;
+        bytes32 srcChainId;
+        uint256 depositId;
+        address destToken;
+        address recipient;
+    }
+
+    struct RelayDataMessage {
+        uint256 amount;
+        bytes32 srcChainId;
+        uint256 depositId;
+        address destToken;
+        address recipient;
+        bytes message;
+    }
+
+    struct DepositData {
+        uint256 partnerId;
+        uint256 amount;
+        uint256 destAmount;
+        address srcToken;
+        address refundRecipient;
+        bytes32 destChainIdBytes;
+    }
+
+    function depositNonce() external view returns (uint256);
+
+    function iDeposit(
+        DepositData memory depositData,
+        bytes memory destToken,
+        bytes memory recipient
+    ) external payable;
+
+    function iDepositInfoUpdate(
+        address srcToken,
+        uint256 feeAmount,
+        uint256 depositId,
+        bool initiatewithdrawal
+    ) external payable;
+
+    function iDepositMessage(
+        DepositData memory depositData,
+        bytes memory destToken,
+        bytes memory recipient,
+        bytes memory message
+    ) external payable;
+
+    function iRelay(RelayData memory relayData) external payable;
+
+    function iRelayMessage(RelayDataMessage memory relayData) external payable;
+}
+
+interface IPriceOracle {
+    function getPrice(
+        address token
+    ) external view returns (uint256 price, uint256 lastUpdate);
+
+    function setPrice(
+        address[] calldata tokens,
+        uint256[] calldata prices
+    ) external;
+}
+
+interface IStableSwapRouter {
+    /**
+    * @param path Array of token addresses in a stable swap pool.
+    * @param flag Flag indicating the pool type. Use '2' for a 2-pool, '3' for a 3-pool.
+    * @param amountIn Amount of the input token to be exchanged.
+    * @param amountOutMin Minimum expected amount of output tokens.
+    * @param to Recipient address to receive the exchanged tokens.
+    */
+    function exactInputStableSwap(
+        address[] calldata path,
+        uint256[] calldata flag,
+        uint256 amountIn,
+        uint256 amountOutMin,
+        address to
+    ) external payable returns (uint256 amountOut);
+
+    /**
+    * @param path Array of token addresses in a stable swap pool.
+    * @param flag Flag indicating the pool type. Use '2' for a 2-pool, '3' for a 3-pool.
+    * @param amountOut Amount of the input token to be exchanged.
+    * @param amountInMax Minimum expected amount of output tokens.
+     */
+    function getOutputStableSwap(
+        address[] calldata path,
+        uint256[] calldata flag,
+        uint256 amountOut,
+        uint256 amountInMax
+    ) external view returns (uint256 amountIn);
+}
+```
+
+- `Sapphire` từ `Sapphire.sol` của `Oasisprotocol`
+
+**Inhertance:**
+- Cần kế thừa từ contract `AccessControlUpgradeable`
+
+**Khai báo:**
+- Struct
+  
+```solidity
+struct BridgeData {
+        uint256 partnerId;
+        uint256 destAmount;
+        address refunder;
+        bytes32 destChainId;
+        bytes tokenDestChain;
+        bytes receiver;
+    }
+```
+
+- Event
+
+```solidity
+event BridgeSuccess(
+        address indexed token,
+        uint256 amountOut,
+        uint256 indexed depositId,
+        bytes32 destChainId,
+        bytes tokenDestChain,
+        bytes receiver,
+        address refundAddress
+    );
+```
+```solidity
+event TestnetEvent(address indexed sender, uint256 timestamp);
+```
+
+- Các biến
+
+```solidity
+    string public constant VERSION = "0.0.1";
+
+    address public whisprUSD;
+    address public whisprUSDMinter;
+    address public thornUSD;
+    address public stableSwapRouter;
+    address public assetForwarder;
+
+    Sapphire.Curve25519PublicKey internal publicKey;
+    Sapphire.Curve25519SecretKey internal privateKey;
+
+    address public oracle;
+    uint256 public clearingFee;
+
+    address public refundWalletEntrypoint;
+```
+
+**Functions:**
+
+- `initialize`
+
+```solidity
+function initialize(
+        address _whisprUSD,
+        address _whisprUSDMinter,
+        address _thornUSD,
+        address _stableSwapRouter,
+        address _assetForwarder,
+        address _refundWalletEntrypoint
+    ) external initializer {
+        __AccessControl_init();
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        whisprUSD = _whisprUSD;
+        whisprUSDMinter = _whisprUSDMinter;
+        thornUSD = _thornUSD;
+        stableSwapRouter = _stableSwapRouter;
+        assetForwarder = _assetForwarder;
+        refundWalletEntrypoint = _refundWalletEntrypoint;
+    }
+```
+
+- `init2e2Proxy`
+
+```solidity
+function init2e2Proxy() public {
+        require(
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
+            "WhisprBridge: not admin"
+        );
+        bytes memory extra_entropy = abi.encodePacked(
+            block.timestamp,
+            block.coinbase,
+            block.number
+        );
+        (publicKey, privateKey) = Sapphire.generateCurve25519KeyPair(
+            extra_entropy
+        );
+    }
+```
+
+- `getPublicKey`
+
+```solidity
+function getPublicKey() public view returns (bytes32) {
+        return Sapphire.Curve25519PublicKey.unwrap(publicKey);
+    }
+```
+
+- `bridge`
+
+```solidity
+    function bridge(
+        IWhisprERC20.ApproveData memory approveData,
+        uint256 amount,
+        address tokenOut,
+        uint256 amountOutMin,
+        address[] calldata path,
+        uint256[] calldata flags,
+        BridgeData calldata bridgeData
+    ) public {
+        IWhisprERC20(whisprUSD).approveByEIP712(approveData);
+        // transferFrom
+        IWhisprERC20(whisprUSD).transferFrom(
+            approveData.owner,
+            address(this),
+            amount
+        );
+        // mint ThornUSD
+        IWhisprERC20(whisprUSD).approve(whisprUSDMinter, amount);
+        IWhisprMinter(whisprUSDMinter).burnWhisprUSD(amount, address(this));
+        IERC20(thornUSD).approve(stableSwapRouter, amount);
+        IStableSwapRouter(stableSwapRouter).exactInputStableSwap(
+            path,
+            flags,
+            amount,
+            amountOutMin,
+            address(this)
+        );
+
+        //Bridge
+
+        uint256 depositId = IAssetForwarder(assetForwarder).depositNonce();
+
+        IERC20(tokenOut).approve(assetForwarder, amountOutMin);
+
+        // get refund address
+        address refundWallet = IRefundWalletEntrypoint(refundWalletEntrypoint)
+            .createRefundWallet(approveData.owner, depositId);
+
+        IAssetForwarder.DepositData memory depositData = IAssetForwarder
+            .DepositData({
+                partnerId: bridgeData.partnerId,
+                amount: amountOutMin,
+                destAmount: bridgeData.destAmount,
+                srcToken: tokenOut,
+                refundRecipient: refundWallet,
+                destChainIdBytes: bridgeData.destChainId
+            });
+
+        IAssetForwarder(assetForwarder).iDeposit(
+            depositData,
+            bridgeData.tokenDestChain,
+            bridgeData.receiver
+        );
+
+        emit BridgeSuccess(
+            tokenOut,
+            amount,
+            depositId,
+            bridgeData.destChainId,
+            bridgeData.tokenDestChain,
+            bridgeData.receiver,
+            refundWallet
+        );
+    }
+```
+
+- `bridgeEncrypt`
+
+```solidity
+    function bridgeEncrypt(
+        bytes32 peerPublicKey,
+        bytes32 nonce,
+        bytes calldata data,
+        uint256 amount,
+        address tokenOut,
+        uint256 amountOutMin,
+        address[] calldata path,
+        uint256[] calldata flags,
+        BridgeData calldata bridgeData
+    ) public {
+        bytes32 symmetricKey = Sapphire.deriveSymmetricKey(
+            Sapphire.Curve25519PublicKey.wrap(peerPublicKey),
+            privateKey
+        );
+        bytes memory plaintext = Sapphire.decrypt(
+            symmetricKey,
+            nonce,
+            data,
+            ""
+        );
+        IWhisprERC20.ApproveData memory approveData = abi.decode(
+            plaintext,
+            (IWhisprERC20.ApproveData)
+        );
+        bridge(
+            approveData,
+            amount,
+            tokenOut,
+            amountOutMin,
+            path,
+            flags,
+            bridgeData
+        );
+    }
+```
+
+- `update`
+
+```solidity
+    function update(address _refundWalletEntrypoint) external {
+        require(
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
+            "WhisprBridge: not admin"
+        );
+        refundWalletEntrypoint = _refundWalletEntrypoint;
+    }
+```
+
+### **WhisprMinter**
+**Import:**
+- `AcessControlUpgradable.sol` từ `OpenZeppelin`
+- `PausebleUpgradable.sol` từ `OpenZeppelin`
+- `ERC20.sol` từ `OpenZeppelin`
+- interface của `WhisprERC20.sol`
+
+**Inheritance:**
+- Cần kế thừa các contract `AccessControlUpgradable.sol` và `PauseUpgradeable.sol`
+
+**Khai báo:**
+
+```solidity
+    address public whisprUSD;
+    address public thornUSD;
+```
+
+**Functions:**
+- `initialize`
+
+```solidity
+   function initialize(
+        address _whisprUSD,
+        address _thornUSD
+    ) external initializer {
+        whisprUSD = _whisprUSD;
+        thornUSD = _thornUSD;
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
+```
+
+- `mintWhisprUSD`
+
+```solidity
+    function mintWhisprUSD(
+        uint256 amount,
+        address receiver
+    ) public whenNotPaused returns (uint256 amountOut) {
+        IERC20(thornUSD).transferFrom(msg.sender, address(this), amount);
+        IWhisprERC20(whisprUSD).mint(receiver, amount);
+        return amount;
+    }
+```
+
+- `burnWhisprUSD`
+
+```solidity
+    function burnWhisprUSD(
+        uint256 amount,
+        address receiver
+    ) public whenNotPaused {
+        IWhisprERC20(whisprUSD).transferFrom(msg.sender, address(this), amount);
+        IWhisprERC20(whisprUSD).burn(amount);
+        IERC20(thornUSD).transfer(receiver, amount);
+    }
+```
+
+- `pause`
+
+```solidity
+    function pause() public onlyRole(DEFAULT_ADMIN_ROLE) {
+        _pause();
+    }
+```
+
+- `unpause`
+
+```solidity
+    function unpause() public onlyRole(DEFAULT_ADMIN_ROLE) {
+        _unpause();
+    }
+```
 ## Các vấn đề chưa giải quyết
