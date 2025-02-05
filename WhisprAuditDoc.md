@@ -9,6 +9,9 @@
 - Xác thực giao dịch bằng EIP-712 để giảm chi phí gas và tăng tính bảo mật.
 - Tạo cơ chế wrap/unwrap token để che giấu nguồn gốc của tài sản khi giao dịch.
 - Hỗ trợ các chức năng quản lý quyền riêng tư và uỷ quyền giao dịch.
+- Cơ chế RefundWallet:
+Hỗ trợ hoàn tiền tự động cho các giao dịch thất bại hoặc cần hủy.
+Tạo ví hoàn tiền riêng biệt cho từng giao dịch để tối ưu hóa bảo mật.
 ## Giải pháp
 
 ###  Xây dựng các contract sau:
@@ -38,6 +41,25 @@
 - Cung cấp cơ chế wrap/unwrap token để che giấu nguồn gốc tài sản.
 - **Wrap**: Người dùng gửi một số lượng token ERC-20 vào `PrivacyWrapper`, sau đó nhận lại lượng `wrapToken` tương ứng (`WhisprUSD`,...).
 - **Unwrap**: Người dùng gửi `wrapToken` vào contract, sau đó contract sẽ **burn** `wrapToken` và chuyển lượng token ERC-20 tương ứng lại cho người dùng.
+
+#### **RefundWallet**
+- Hỗ trợ rút token hoàn trả cho người dùng.
+- Chỉ có `Entrypoint` mới có quyền thực hiện rút tiền.
+- Cho phép rút các token ERC-20.
+
+#### **RefundWalletEntrypoint**
+- Tạo ví hoàn trả (Refund Wallet) cho mỗi giao dịch nạp tiền.
+- Hỗ trợ xác thực đăng nhập bằng EIP-712.
+- Cho phép rút token từ ví hoàn trả và swap thành `WhisprUSD`.
+
+#### **Wallet**
+- Là contract ví được sử dụng trong hệ thống Whispr.
+- Chỉ admin mới có quyền thực hiện giao dịch từ ví này.
+- Hỗ trợ thực thi các giao dịch tùy chỉnh.
+
+#### **Proxy**
+- Là proxy contract hỗ trợ nâng cấp các ví RefundWallet.
+- Delegate call đến contract triển khai (implementation).
 
 ---
 
@@ -132,6 +154,51 @@
 |------------|---------|
 | `whisprUSD` | Địa chỉ của token WhisprUSD, được mint khi nhận ThornUSD. |
 | `thornUSD`  | Địa chỉ của token ThornUSD, được cung cấp vào pool để đổi lấy WhisprUSD. |
+#### **RefundWallet**  
+
+| Thuộc tính   | Ý nghĩa |
+|-------------|---------|
+| `VERSION`   | Chuỗi phiên bản của contract (`"0.0.1"`) |
+| `entrypoint` | Địa chỉ của contract **RefundWalletEntrypoint**, chỉ contract này mới có quyền gọi `withdraw` |
+| `owner`     | Địa chỉ chủ sở hữu của ví hoàn trả (người dùng) |
+| `depositId` | ID của lần nạp tiền tương ứng với ví hoàn trả |
+
+#### **RefundWalletEntrypoint**  
+
+| Thuộc tính               | Ý nghĩa |
+|--------------------------|---------|
+| `ENTRYPOINT_VERSION`     | Chuỗi phiên bản của contract (`"0.0.1"`) |
+| `BRIDGE_ROLE`           | Hash của chuỗi `"BRIDGE_ROLE"` dùng để xác thực vai trò bridge |
+| `thornUSD`              | Địa chỉ token ThornUSD, token chính trong hệ thống |
+| `whisprMinter`          | Địa chỉ của contract **WhisprMinter**, dùng để mint WhisprUSD |
+| `stableSwapRouter`      | Địa chỉ của contract **StableSwapRouter**, dùng để swap token |
+| `thornBridge`           | Địa chỉ của contract **ThornBridge**, chịu trách nhiệm cầu nối (bridge) tài sản |
+| `basicImplementation`   | Địa chỉ của contract **RefundWallet**, được dùng làm implementation cho proxy |
+| `countTransaction`      | Mapping lưu số lượng transaction của từng chủ sở hữu ví |
+| `ownerToWallet`         | Mapping lưu địa chỉ ví hoàn trả theo chủ sở hữu và số thứ tự giao dịch |
+| `EIP712_DOMAIN_TYPEHASH` | Hash của cấu trúc domain EIP-712 |
+| `LOGIN_CODE`            | Hash của chuỗi `"Whispr.login"`, dùng để xác thực đăng nhập EIP-712 |
+| `DOMAIN_LOGIN`          | Hash của domain đăng nhập, được tạo từ `EIP712_DOMAIN_TYPEHASH` |
+#### **Wallet**
+
+| Thuộc tính  | Ý nghĩa                                                                                         |
+|-------------|-------------------------------------------------------------------------------------------------|
+| `admin`     | Địa chỉ của admin, người có quyền thực hiện các hành động chỉ dành cho admin.                   |
+| `dest`      | Địa chỉ của contract hoặc tài khoản đích được gọi bởi hàm `execute_ncC`.                        |
+| `value`     | Số lượng ETH (hoặc giá trị) được gửi kèm khi thực hiện lệnh gọi tới `dest`.                     |
+| `func`      | Dữ liệu mã hóa (`calldata`) của hàm được gọi trên `dest`.                                       |
+| `target`    | Địa chỉ contract hoặc tài khoản đích được sử dụng trong hàm nội bộ `_call`.                     |
+| `data`      | Dữ liệu mã hóa (`bytes`) được truyền vào hàm `_call`.                                           |
+| `success`   | Kết quả của lệnh gọi contract (thành công hay thất bại), được xác định qua assembly.            |
+| `ptr`       | Con trỏ trong bộ nhớ, được sử dụng để lưu dữ liệu trả về từ contract khác trong assembly.        |
+#### **Proxy**
+
+| Thuộc tính      | Ý nghĩa                                                                                     |
+|------------------|---------------------------------------------------------------------------------------------|
+| `_implementation` | Địa chỉ của contract implementation, được thiết lập khi khởi tạo Proxy.                   |
+| `target`          | Địa chỉ contract implementation được lấy từ slot lưu trữ (sử dụng `sload`).              |
+| `result`          | Kết quả của lệnh `delegatecall`, xác định xem việc gọi hàm ở implementation thành công hay không. |
+
 ## Các usecase quan trọng
 ### WhisprECDSA
 
