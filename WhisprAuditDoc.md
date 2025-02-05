@@ -36,6 +36,7 @@
 Hỗ trợ hoàn tiền tự động cho các giao dịch thất bại hoặc cần hủy.
 Tạo ví hoàn tiền riêng biệt cho từng giao dịch để tối ưu hóa bảo mật.
 ## Các vấn đề
+- Chưa thêm hàm khởi tạo cho WhisprMinter của AccessControl và Pausable.
 ## Giải pháp
 
 ###  Xây dựng các contract sau:
@@ -766,12 +767,15 @@ Không có.
 **Input:**
 | Parameter             | Meaning                                          |
 |-----------------------|--------------------------------------------------|
+|  __AccessControl_init();           | Khởi tạo chức năng kiểm soát quyền. |
+| __Pausable_init();             | Khởi tạo cơ chế tạm dừng. |
 | _thornUSD             | Địa chỉ token `thornUSD` sử dụng trong hệ thống. |
 | _whisprMinter         | Địa chỉ của contract mint `WhisprUSD`.           |
 | _stableSwapRouter     | Địa chỉ của contract swap stablecoin.            |
 | _basicImplementation  | Địa chỉ của `RefundWallet` implementation cơ bản.|
 
 **Các công việc thực hiện:**
+- Khởi tạo hệ thống kiểm soát quyền và tạm dừng: __AccessControl_init(); để thiết lập hệ thống phân quyền; __Pausable_init(); để kích hoạt cơ chế tạm dừng hợp đồng khi cần.
 - Thiết lập các địa chỉ liên quan cho hệ thống (`thornUSD`, `whisprMinter`, `stableSwapRouter`, `basicImplementation`).
 - Cấp quyền admin cho người triển khai (`msg.sender`) qua `DEFAULT_ADMIN_ROLE`.
 - Khởi tạo các giá trị cho xác thực EIP-712, bao gồm `EIP712_DOMAIN_TYPEHASH` và `DOMAIN_LOGIN`.
