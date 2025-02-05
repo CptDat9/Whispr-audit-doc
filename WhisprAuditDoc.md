@@ -27,6 +27,7 @@
 
 
 ## Các vấn đề cần giải quyết
+### Yêu cầu contract cần thực hiện thành công:
 - Cơ chế giao dịch ẩn danh cho các token ERC-20 (contract hiện tại hỗ trợ WhisprUSD).
 - Bảo mật thông tin giao dịch, không để lộ các thông tin giao dịch(địa chỉ người dùng, số lượng token, lịch sử giao dịch,...) trên blockchain.
 - Xác thực giao dịch bằng EIP-712 để giảm chi phí gas và tăng tính bảo mật.
