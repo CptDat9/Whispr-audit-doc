@@ -371,7 +371,7 @@ Tạo ví hoàn tiền riêng biệt cho từng giao dịch để tối ưu hóa
 - Kiểm tra xem người gọi có quyền `MINTER_ROLE` hay không.
 - Gọi hàm `_mint(to, amount)` để tạo thêm token cho địa chỉ `to`.
 
----
+
 
 #### burn
 **Input:**
@@ -382,7 +382,7 @@ Tạo ví hoàn tiền riêng biệt cho từng giao dịch để tối ưu hóa
 **Các công việc thực hiện:**
 - Gọi hàm `_burn(msg.sender, amount)` để giảm số lượng token của người gọi.
 
----
+
 
 #### totalSupply
 **Input:** Không có  
@@ -390,7 +390,7 @@ Tạo ví hoàn tiền riêng biệt cho từng giao dịch để tối ưu hóa
 **Các công việc thực hiện:**
 - Trả về tổng số token đang lưu hành (`_globalTotalSupply`).
 
----
+
 
 #### balanceOf
 **Input:**
