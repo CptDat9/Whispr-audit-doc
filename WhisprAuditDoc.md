@@ -27,11 +27,11 @@
 
 
 ## Các vấn đề cần giải quyết
-- Cung cấp cơ chế giao dịch ẩn danh cho các token ERC-20 (contract hiện tại hỗ trợ WhisprUSD).
+- Cơ chế giao dịch ẩn danh cho các token ERC-20 (contract hiện tại hỗ trợ WhisprUSD).
 - Bảo mật thông tin giao dịch, không để lộ các thông tin giao dịch(địa chỉ người dùng, số lượng token, lịch sử giao dịch,...) trên blockchain.
 - Xác thực giao dịch bằng EIP-712 để giảm chi phí gas và tăng tính bảo mật.
 - Tạo cơ chế wrap/unwrap token để che giấu nguồn gốc của tài sản khi giao dịch.
-- Hỗ trợ các chức năng quản lý quyền riêng tư và uỷ quyền giao dịch.
+- Các chức năng quản lý quyền riêng tư và uỷ quyền giao dịch.
 - Cơ chế RefundWallet:
 Hỗ trợ hoàn tiền tự động cho các giao dịch thất bại hoặc cần hủy.
 Tạo ví hoàn tiền riêng biệt cho từng giao dịch để tối ưu hóa bảo mật.
