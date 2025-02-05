@@ -63,12 +63,28 @@ Tạo ví hoàn tiền riêng biệt cho từng giao dịch để tối ưu hóa
 
 ---
 
-###  **Cơ chế hoạt động**
-1. Người dùng **wrap** token ERC-20 thành `WhisprUSD` để giao dịch ẩn danh.
-2. Giao dịch được gửi qua hệ thống mã hóa của **Sapphire**.
-3. Xác thực giao dịch thông qua **EIP-712**.
-4. Người dùng có thể **unwrap** `WhisprUSD` để nhận lại token ERC-20 gốc.
-5. Với **bridge**, token có thể được chuyển đổi và gửi tới các pool khác (hỗ trợ giao dịch cross-chain).
+### Cơ chế hoạt động
+
+1. **Wrap token:**  
+   Người dùng gửi token ERC-20 vào contract PrivacyWrapper để wrap thành WhisprUSD. Sau khi wrap, người dùng nhận lại một lượng **wrapToken** tương ứng nhằm che giấu nguồn gốc tài sản.
+
+2. **Giao dịch ẩn danh:**  
+   Các giao dịch sử dụng WhisprUSD được thực hiện thông qua hệ thống mã hóa của Sapphire, đảm bảo tính riêng tư và bảo mật.
+
+3. **Xác thực giao dịch:**  
+   Giao dịch được ký off-chain và xác thực thông qua tiêu chuẩn **EIP-712**, giúp tiết kiệm gas và tăng tính bảo mật.
+
+4. **Unwrap token:**  
+   Khi người dùng muốn nhận lại tài sản gốc, họ có thể gửi **wrapToken** vào contract PrivacyWrapper để unwrap. Sau đó, contract sẽ burn lượng wrapToken tương ứng và chuyển token ERC-20 gốc trở lại cho người dùng.
+
+5. **Cross-chain bridge:**  
+   Token WhisprUSD có thể được chuyển đổi và gửi tới các pool khác trên các blockchain khác nhau thông qua cơ chế của **WhisprBridge**, hỗ trợ giao dịch cross-chain.
+
+6. **RefundWallet:**  
+   - Mỗi giao dịch nạp tiền sẽ tạo một ví hoàn trả (Refund Wallet) dành riêng cho giao dịch đó.  
+   - Người dùng có thể rút token từ ví hoàn trả này hoặc swap thành WhisprUSD thông qua **RefundWalletEntrypoint**.  
+   - Việc quản lý và thực hiện rút tiền chỉ có thể được thực hiện bởi Entrypoint, đảm bảo quyền hạn rõ ràng và an toàn.  
+
 
 ## Thiết kế hệ thống
 ### Các thuộc tính quan trọng
