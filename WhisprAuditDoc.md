@@ -36,7 +36,7 @@
 Hỗ trợ hoàn tiền tự động cho các giao dịch thất bại hoặc cần hủy.
 Tạo ví hoàn tiền riêng biệt cho từng giao dịch để tối ưu hóa bảo mật.
 ## Các vấn đề
-- Chưa thêm hàm khởi tạo cho WhisprMinter của AccessControl và Pausable.
+- Chưa thêm hàm khởi tạo của WhisprMinter cho AccessControl và Pausable.
 ## Giải pháp
 
 ###  Xây dựng các contract sau:
