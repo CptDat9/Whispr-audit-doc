@@ -37,7 +37,7 @@ Hỗ trợ hoàn tiền tự động cho các giao dịch thất bại hoặc c�
 Tạo ví hoàn tiền riêng biệt cho từng giao dịch để tối ưu hóa bảo mật.
 ## Các vấn đề
 - Chưa thêm hàm khởi tạo của WhisprMinter cho AccessControl và Pausable.
-- Trong  contract RefundWallet thiếu 2 hàm `receive()` và `fallback()`  sử dụng để xử lý việc nhận ETH vào hợp đồng.
+- Trong  contract RefundWallet chưa có 2 hàm `receive()` và `fallback()`  sử dụng để xử lý việc nhận ETH vào hợp đồng.
 ## Giải pháp
 
 ###  Xây dựng các contract sau:
