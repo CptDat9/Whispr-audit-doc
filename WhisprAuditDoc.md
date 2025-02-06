@@ -2232,6 +2232,8 @@ function getPublicKey() public view returns (bytes32) {
         address _whisprUSD,
         address _thornUSD
     ) external initializer {
+        __AccessControl_init();  // thêm hàm khởi tạo
+        __Pausable_init(); // thêm hàm khởi tạo
         whisprUSD = _whisprUSD;
         thornUSD = _thornUSD;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
