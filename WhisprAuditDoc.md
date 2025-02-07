@@ -32,7 +32,6 @@
 
 ## Các vấn đề
 - Chưa thêm hàm khởi tạo của WhisprMinter cho AccessControl và Pausable.
-- Trong  contract RefundWallet chưa có 2 hàm `receive()` và `fallback()`  sử dụng để xử lý việc nhận ERC20 vào hợp đồng.
 ## Giải pháp
 
 ###  Xây dựng các contract sau:
