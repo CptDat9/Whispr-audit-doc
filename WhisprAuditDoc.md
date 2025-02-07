@@ -1,40 +1,35 @@
 # Whispr-audit-doc
+
 ## Giới thiệu
 - Whispr là hệ thống hỗ trợ giao dịch token ẩn danh trên mạng Oasis Sapphire.
-- WhisprUSD là token được phát triển dựa trên ERC-20 để hỗ trợ cơ chế của Whispr, đã được tùy chỉnh để phù hợp với tính riêng tư và xác thực giao dịch ẩn danh.
+- WhisprUSD là token được phát triển dựa trên ERC-20 để hỗ trợ cơ chế của Whispr, đã được tùy chỉnh để phù hợp với tính riêng tư và xác thực giao dịch ẩn danh.  
   Đây là tính năng mới rất độc đáo hứa hẹn sẽ làm đa dạng thêm hệ sinh thái DeFi.
-  ### Cơ chế hoạt động
 
-1. **Wrap token:**  
-   Người dùng gửi token ERC-20 vào contract PrivacyWrapper để wrap thành WhisprUSD. Sau khi wrap, người dùng nhận lại một lượng **wrapToken** tương ứng nhằm che giấu nguồn gốc tài sản.
+### Cơ chế hoạt động
 
-2. **Giao dịch ẩn danh:**  
+1. **Giao dịch ẩn danh:**  
    Các giao dịch sử dụng WhisprUSD được thực hiện thông qua hệ thống mã hóa của Sapphire, đảm bảo tính riêng tư và bảo mật.
 
-3. **Xác thực giao dịch:**  
+2. **Xác thực giao dịch:**  
    Giao dịch được ký off-chain và xác thực thông qua tiêu chuẩn **EIP-712**, giúp tiết kiệm gas và tăng tính bảo mật.
 
-4. **Unwrap token:**  
-   Khi người dùng muốn nhận lại tài sản gốc, họ có thể gửi **wrapToken** vào contract PrivacyWrapper để unwrap. Sau đó, contract sẽ burn lượng wrapToken tương ứng và chuyển token ERC-20 gốc trở lại cho người dùng.
-
-5. **Cross-chain bridge:**  
+3. **Cross-chain bridge:**  
    Token WhisprUSD có thể được chuyển đổi và gửi tới các pool khác trên các blockchain khác nhau thông qua cơ chế của **WhisprBridge**, hỗ trợ giao dịch cross-chain.
 
-6. **RefundWallet:**  
+4. **RefundWallet:**  
    - Mỗi giao dịch nạp tiền sẽ tạo một ví hoàn trả (Refund Wallet) dành riêng cho giao dịch đó.  
    - Người dùng có thể rút token từ ví hoàn trả này hoặc swap thành WhisprUSD thông qua **RefundWalletEntrypoint**.  
    - Việc quản lý và thực hiện rút tiền chỉ có thể được thực hiện bởi Entrypoint, đảm bảo quyền hạn rõ ràng và an toàn.  
 
-
 ## Yêu cầu contract cần thực hiện thành công:
 - Cơ chế giao dịch ẩn danh cho các token ERC-20 (contract hiện tại hỗ trợ WhisprUSD).
-- Bảo mật thông tin giao dịch, không để lộ các thông tin giao dịch(địa chỉ người dùng, số lượng token, lịch sử giao dịch,...) trên blockchain.
+- Bảo mật thông tin giao dịch, không để lộ các thông tin giao dịch (địa chỉ người dùng, số lượng token, lịch sử giao dịch,...) trên blockchain.
 - Xác thực giao dịch bằng EIP-712 để giảm chi phí gas và tăng tính bảo mật.
-- Tạo cơ chế wrap/unwrap token để che giấu nguồn gốc của tài sản khi giao dịch.
 - Các chức năng quản lý quyền riêng tư và uỷ quyền giao dịch.
 - Cơ chế RefundWallet:
-Hỗ trợ hoàn tiền tự động cho các giao dịch thất bại hoặc cần hủy.
-Tạo ví hoàn tiền riêng biệt cho từng giao dịch để tối ưu hóa bảo mật.
+  - Hỗ trợ hoàn tiền tự động cho các giao dịch thất bại hoặc cần hủy.
+  - Tạo ví hoàn tiền riêng biệt cho từng giao dịch để tối ưu hóa bảo mật.
+
 ## Các vấn đề
 - Chưa thêm hàm khởi tạo của WhisprMinter cho AccessControl và Pausable.
 - Trong  contract RefundWallet chưa có 2 hàm `receive()` và `fallback()`  sử dụng để xử lý việc nhận ETH vào hợp đồng.
