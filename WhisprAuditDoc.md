@@ -749,13 +749,6 @@ Không có.
 - Kiểm tra caller phải là Entrypoint bằng `onlyEntrypoint` modifier.
 - Gọi hàm `IERC20(token).transfer(receiver, amount)` để chuyển token từ ví hoàn trả tới địa chỉ người nhận.
 
-#### receive
-- Chức năng: Cho phép hợp đồng nhận ETH khi giao dịch không có dữ liệu đi kèm.
-- Logic: Khi hợp đồng nhận ETH, một sự kiện (ReceivedETH) sẽ được ghi lại để theo dõi.
-
-#### fallback
-- Chức năng: Đóng vai trò là hàm dự phòng, được gọi khi giao dịch không khớp với bất kỳ hàm nào trong hợp đồng hoặc khi receive() không tồn tại.
-- Logic: Từ chối các giao dịch không rõ ràng bằng cách revert với thông báo lỗi.
 
 #### **Các đặc điểm chính của contract**
 - **VERSION:** Chuỗi phiên bản cố định `"0.0.1"`, giúp theo dõi thay đổi của contract.
@@ -2336,20 +2329,7 @@ function getPublicKey() public view returns (bytes32) {
         IERC20(token).transfer(receiver, amount);
     }
 ```
-- `receive`
-- Cho phép hợp đồng nhận ETH khi giao dịch không có dữ liệu đi kèm.
-  ```solidity
-  receive() external payable {
-    emit ReceivedETH(msg.sender, msg.value);
-  }
-  ```
-- `fallback`
-- Từ chối và revert giao dịch không rõ ràng.
- ```solidity
- fallback() external payable {
-    revert("RefundWallet: invalid transaction");
-} 
- ```
+
 ### **Proxy**
 
 **Constructor:**
