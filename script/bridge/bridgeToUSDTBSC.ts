@@ -1,0 +1,123 @@
+import hre, { ethers } from "hardhat";
+
+import { formatUnits, getBytes, parseUnits, zeroPadBytes } from "ethers";
+import * as ethersV6 from "ethers";
+import * as sapphire from "@oasisprotocol/sapphire-paratime";
+import { PrivacyERC20__factory, WhisprBridge__factory } from "../../typechain-types";
+import { TOKEN_ADDRESS, TOKEN_TESTNET } from "../../utils/address";
+
+async function mintWhispr() {
+    const { getChainId } = hre;
+    const { deployments, getNamedAccounts } = hre;
+    const { deploy, save, execute, get, read } = deployments;
+
+    const [deployer] = await ethers.getSigners();
+    console.log(`Deployer address: ${deployer.address}`);
+    const whisprDeployment = await get("WhisprUSD");
+    const whispr = PrivacyERC20__factory.connect(whisprDeployment.address, ethers.provider);
+    let real_balance = await whispr.connect(deployer).balanceOf(deployer.address);
+    console.log(`Real balance: ${formatUnits(real_balance, 18)}`);
+
+    const bridgeDeployment = await get("WhisprBridge");
+    let bridge = WhisprBridge__factory.connect(bridgeDeployment.address, ethers.provider);
+
+    if (real_balance > 10_000_000n) {
+        const nonce_x = await whispr.connect(deployer).getNonceEIP712(deployer.address);
+        console.log(`Nonce: ${nonce_x}`);
+        const validAfter = Math.floor(Date.now() / 1000) - 100 * 60;
+        const validUntil = Math.floor(Date.now() / 1000) + 100 * 60;
+        const bridgeDeployment = await get("WhisprBridge");
+        const bridge = WhisprBridge__factory.connect(bridgeDeployment.address, ethers.provider);
+        const amount = parseUnits("10", 18);
+        const amountOutMint = parseUnits("5", 6);
+        const destAmount = parseUnits("5", 6);
+
+        const signature = await deployer.signTypedData(
+            {
+                name: "Whispr.approve",
+                version: "1",
+                chainId: 23295,
+                verifyingContract: await whispr.getAddress(),
+            },
+            {
+                approve: [
+                    { name: "owner", type: "address" },
+                    { name: "spender", type: "address" },
+                    { name: "amount", type: "uint256" },
+                    { name: "nonce", type: "uint256" },
+                    { name: "validAfter", type: "uint256" },
+                    { name: "validUntil", type: "uint256" },
+                ],
+            },
+            {
+                owner: deployer.address,
+                spender: await bridge.getAddress(),
+                amount: amount,
+                nonce: nonce_x,
+                validAfter: validAfter,
+                validUntil: validUntil,
+            }
+        );
+        const rsv = ethers.Signature.from(signature);
+        const approveData = {
+            owner: deployer.address,
+            spender: await bridge.getAddress(),
+            amount: amount,
+            nonce: nonce_x,
+            validAfter: validAfter,
+            validUntil: validUntil,
+            rsv,
+        };
+        const usdt = TOKEN_TESTNET.ThornUSD;
+        let txResponse, txReceipt;
+
+        const usdt_bsc = TOKEN_ADDRESS.BSC_TESTNET.USDT;
+
+        const path = [TOKEN_ADDRESS.SAPPHIRE_TESTNET.THORNUSD, TOKEN_ADDRESS.SAPPHIRE_TESTNET.USDT];
+
+        const flag = [2];
+
+        const txTest = await bridge
+            .connect(deployer)
+            .bridge.staticCall(
+                approveData,
+                parseUnits("10", 18),
+                TOKEN_ADDRESS.SAPPHIRE_TESTNET.USDT,
+                parseUnits("5", 6),
+                path,
+                flag,
+                {
+                    partnerId: 1,
+                    destAmount: destAmount,
+                    refunder: deployer.address,
+                    destChainId: ethersV6.encodeBytes32String("97"),
+                    tokenDestChain: TOKEN_ADDRESS.BSC_TESTNET.USDT,
+                    receiver: deployer.address,
+                }
+            );
+
+        console.log(txTest);
+
+        txResponse = await bridge
+            .connect(deployer)
+            .bridge(
+                approveData,
+                parseUnits("10", 18),
+                TOKEN_ADDRESS.SAPPHIRE_TESTNET.USDT,
+                parseUnits("5", 6),
+                path,
+                flag,
+                {
+                    partnerId: 1,
+                    destAmount: destAmount,
+                    refunder: deployer.address,
+                    destChainId: ethersV6.encodeBytes32String("97"),
+                    tokenDestChain: TOKEN_ADDRESS.BSC_TESTNET.USDT,
+                    receiver: deployer.address,
+                }
+            );
+
+        txReceipt = await txResponse.wait();
+    }
+}
+mintWhispr();
